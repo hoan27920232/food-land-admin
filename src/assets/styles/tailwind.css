@@ -1,0 +1,27 @@
+
+@import '~antd/dist/antd.css';
+@import 'ant-design-pro/dist/ant-design-pro.css';
+.logo {
+  height: 32px;
+  margin: 16px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.site-layout .site-layout-background {
+  background: #fff;
+}
+img, input[type="image"] {
+  aspect-ratio: 1 / 1;
+}
+.bg-login{
+  background: #f0f2f5 url("../images/background.5825f033.svg") no-repeat 50%;
+}
+.horz-center{
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  top: 100px;
+}
+.hidden{
+  display: none;
+}
