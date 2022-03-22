@@ -11,7 +11,8 @@
         "users": "Tài khoản user",
         "settings": "Cài đặt",
         "welcome": "Chào mừng",
-        "me": "Thông tin cá nhân"
+        "me": "Thông tin cá nhân",
+        "discounts": "Mã giảm giá"
     },
     "categoryProduct": {
         "add": "Thêm danh mục", 
@@ -20,6 +21,18 @@
     },
     "assets": {
         "upload": "Tải ảnh"
+    },
+    "discount": {
+        "code": "Mã giảm giá",
+        "discount": "Phần trăm giảm giá",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "active": "Kích hoạt",
+        "add": "Thêm mã giảm giá",
+        "Pleaseenteryourcode": "Vui lòng nhập mã giảm giá",
+        "Pleaseenteryourdiscount": "Vui lòng nhập phần trăm giảm giá",
+        "Pleaseenteryourstartdate": "Vui lòng chọn ngày bắt đầu",
+        "Pleaseenteryourenddate": "Vui lòng chọn ngày kết thúc"
     },
     "button":{
         "edit": "Sửa",

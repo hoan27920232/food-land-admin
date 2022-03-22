@@ -87,6 +87,36 @@ function ListOrder(props) {
   const form = useRef();
   const column = [
     {
+      title: t && t("button.action"),
+      dataIndex: "",
+      key: "x",
+      width: 250,
+      render: (record) => (
+        <div>
+           <Button type="link" onClick={() => handleOpen(record)}>
+            {t("button.edit")}
+          </Button>
+          <Popconfirm
+            title="Are you sure？"
+            onConfirm={() => handleConfirmDelete(record._id)}
+            icon={<QuestionCircleOutlined style={{ color: "red" }} />}
+          >
+            <Button type="link" danger>
+              {t("button.delete")}
+            </Button>
+          </Popconfirm>
+          <Button type="link"  onClick={() => {
+            console.log(record);
+            setPrint(record);
+            setTimeout(() => {
+              handlePrint()
+            },500)
+          }}>Print</Button>
+         
+        </div>
+      ),
+    },
+    {
       title: "ID ",
       dataIndex: "_id",
       key: "_id",
@@ -322,36 +352,7 @@ function ListOrder(props) {
       key: "KieuThanhToan",
       render: (record) => <Tag color="green">{record}</Tag>,
     },
-    {
-      title: t && t("button.action"),
-      dataIndex: "",
-      key: "x",
-      width: 200,
-      render: (record) => (
-        <div>
-          <Popconfirm
-            title="Are you sure？"
-            onConfirm={() => handleConfirmDelete(record._id)}
-            icon={<QuestionCircleOutlined style={{ color: "red" }} />}
-          >
-            <Button type="link" danger>
-              {t("button.delete")}
-            </Button>
-          </Popconfirm>
-          <Button type="link" onClick={() => handleOpen(record)}>
-            {t("button.edit")}
-          </Button>
-          <Button type="link"  onClick={() => {
-            console.log(record);
-            setPrint(record);
-            setTimeout(() => {
-              handlePrint()
-            },500)
-          }}>Print</Button>
-         
-        </div>
-      ),
-    },
+    
   ];
   const handleOpen = async (formValue) => {
     if (formValue._id) {
@@ -1047,17 +1048,17 @@ function ListOrder(props) {
       <Table
         columns={column}
         dataSource={data}
-        scroll={{ x: 2000 }}
+        scroll={{ x: 2500 }}
         onChange={handleTableChange}
         pagination={{ ...pagination, total: total }}
         loading={loading}
         rowKey="_id"
       />
       <div style={{ display: "none"}}>
-      <div class="invoice-box" ref={componentRef}>
+      <div class="invoice-box" ref={componentRef} style={{ width: '100%' }}>
         <table cellPadding="0" cellSpacing="0">
           <tr class="top">
-            <td colspan="3">
+            <td colSpan="3">
               <table>
                 <tr>
                   <td class="title">
@@ -1080,7 +1081,7 @@ function ListOrder(props) {
           </tr>
 
           <tr class="information">
-            <td colspan="3">
+            <td colSpan="3">
               <table>
                 <tr>
                   <td>
@@ -1123,7 +1124,7 @@ function ListOrder(props) {
             <td>Item</td>
 
             <td>Price</td>
-            <td>Quantity</td>
+            <td align="right">Quantity</td>
           </tr>
          {
            print && print.items ? print.items.map((p, i) => (
@@ -1131,7 +1132,7 @@ function ListOrder(props) {
             <td>{p.sanpham.TenSanPham}</td>
 
             <td>{p.sanpham.DonGia}đ</td>
-            <td>{p.soluong}</td>
+            <td align="right">{p.soluong}</td>
           </tr>
            )) : <div>Không có sản phẩm nào</div>
            
@@ -1156,7 +1157,7 @@ function ListOrder(props) {
           <tr class="total">
             <td></td>
             <td></td>
-            <td>Total: {print.TongTien}đ</td>
+            <td align="right">Total: {print.TongTien}đ</td>
           </tr>
         </table>
       </div>
