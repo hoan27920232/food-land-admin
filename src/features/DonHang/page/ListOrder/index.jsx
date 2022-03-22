@@ -4,7 +4,7 @@ import {
   PlusOutlined,
   QuestionCircleOutlined,
   MinusCircleOutlined,
-  SearchOutlined
+  SearchOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -34,11 +34,18 @@ import moment from "moment";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { removeOrder, saveOrder } from "api/orderApi";
+import ReactExport from "react-export-excel";
+import { useReactToPrint } from "react-to-print";
+import ReactToPrint from "react-to-print";
 
+const ExcelFile = ReactExport.ExcelFile;
+const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 ListOrder.propTypes = {};
 function ListOrder(props) {
   const { Option } = Select;
   const { TextArea } = Input;
+  const componentRef = useRef();
   const { t } = useTranslation();
   const data = useSelector((state) => state.orders.orders);
   const total = useSelector((state) => state.orders.totalCount);
@@ -47,6 +54,7 @@ function ListOrder(props) {
   const users = useSelector((state) => state.users.users);
   const products = useSelector((state) => state.products.products);
   const success = useSelector((state) => state.orders.success);
+  const [print, setPrint] = useState({});
   const dispatch = useDispatch();
   const [visible, setVisible] = useState(false);
   const [isAdd, setIsAdd] = useState(false);
@@ -69,6 +77,9 @@ function ListOrder(props) {
     TinhTrangThanhToan: 0,
     KieuThanhToan: "cod",
   });
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 6,
@@ -81,31 +92,42 @@ function ListOrder(props) {
       key: "_id",
       width: 80,
       sorter: (a, b) => a._id - b._id,
-      filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }) => (
         <div style={{ padding: 8 }}>
-        <Input
-          placeholder={`Search`}
-          value={selectedKeys[0]}
-          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => {
-            confirm()
-          }}
-          style={{ marginBottom: 8, display: 'block' }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-            onClick={() => confirm()}
-          >
-            Search
-          </Button>
-          <Button size="small" style={{ width: 90 }} onClick={() => clearFilters()}>
-            Reset
-          </Button>
-          {/* <Button
+          <Input
+            placeholder={`Search`}
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => {
+              confirm();
+            }}
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+              onClick={() => confirm()}
+            >
+              Search
+            </Button>
+            <Button
+              size="small"
+              style={{ width: 90 }}
+              onClick={() => clearFilters()}
+            >
+              Reset
+            </Button>
+            {/* <Button
             type="link"
             size="small"
             onClick={() => {
@@ -115,17 +137,18 @@ function ListOrder(props) {
           >
             Filter
           </Button> */}
-        </Space>
-      </div>
+          </Space>
+        </div>
       ),
       filterIcon: () => {
-        return (
-          <SearchOutlined />
-        )
-      }, 
+        return <SearchOutlined />;
+      },
       onFilter: (value, record) => {
-        return record._id.toString().toLowerCase().includes(value.toString().toLowerCase())
-      }//   filterDropdown: ({
+        return record._id
+          .toString()
+          .toLowerCase()
+          .includes(value.toString().toLowerCase());
+      }, //   filterDropdown: ({
       //     setSelectedKeys,
       //     selectedKeys,
       //     confirm,
@@ -318,11 +341,18 @@ function ListOrder(props) {
           <Button type="link" onClick={() => handleOpen(record)}>
             {t("button.edit")}
           </Button>
+          <Button type="link"  onClick={() => {
+            console.log(record);
+            setPrint(record);
+            setTimeout(() => {
+              handlePrint()
+            },500)
+          }}>Print</Button>
+         
         </div>
       ),
     },
   ];
-
   const handleOpen = async (formValue) => {
     if (formValue._id) {
       setIsAdd(false);
@@ -346,7 +376,6 @@ function ListOrder(props) {
         TinhTrangThanhToan: formValue?.TinhTrangThanhToan,
         KieuThanhToan: formValue?.KieuThanhToan,
       });
-
     } else {
       setIsAdd(true);
       form.current?.setFieldsValue({
@@ -416,18 +445,16 @@ function ListOrder(props) {
   };
 
   const handleConfirmDelete = async (id) => {
- 
-      const action = await removeOrder(id)
-        .then((res) => message.success("Delete order success", 0.4))
-        .catch((err) => {
-          message.success(err.response.data.message, 1);
-        });
-      handleReloadData();
-      setPagination({
-        current: 1,
-        pageSize: 5,
+    const action = await removeOrder(id)
+      .then((res) => message.success("Delete order success", 0.4))
+      .catch((err) => {
+        message.success(err.response.data.message, 1);
       });
-    
+    handleReloadData();
+    setPagination({
+      current: 1,
+      pageSize: 5,
+    });
   };
 
   const handleTableChange = (pagination, filters, sorter) => {
@@ -477,88 +504,87 @@ function ListOrder(props) {
 
   const finishForm = async (data) => {
     setSubmit(true);
-      const itemsNew = groupBy(data.items, "sanpham");
-      const newData = [];
-      for (const [item, key] of Object.entries(itemsNew)) {
-        console.log(item, key);
-        newData.push({
-          sanpham: item,
-          soluong: key.map((p) => p.soluong).reduce((a, b) => a + b, 0),
-        });
-      }
-      let arrayItems = [];
-      if (isAdd) {
-        arrayItems = newData.map((p) => ({
-          sanpham: {
-            _id: p.sanpham,
-          },
-          soluong: p.soluong,
-        }));
-      } else {
-        arrayItems = newData.map((p) => ({
-          sanpham: {
-            _id: p.sanpham,
-          },
-          soluong: p.soluong,
-          soluongcu: valueForm.items.find((g) => g.sanpham == p.sanpham)
-            ? valueForm.items.find((g) => g.sanpham == g.sanpham).soluong
-            : 0,
-        }));
-      }
-      
-      if(data.TrangThai == 1 && !isAdd){
-        const action = await saveOrder({
-          ...data,
-          items: arrayItems,
-          _id: valueForm._id,
-          NgayHoanThanh: new Date()
-        })
-          .then((res) => {
-            setSubmit(false);
-            message.success("Success", 0.6);
-          })
-          .catch((err) => {
-            message.error(err.response?.data?.message, 1);
-            setSubmit(false);
-          });
-      }else{
-        const action = await saveOrder({
-          ...data,
-          items: arrayItems,
-          _id: valueForm._id,
-        })
-          .then((res) => {
-            setSubmit(false);
-            message.success("Success", 0.6);
-          })
-          .catch((err) => {
-            message.error(err.response?.data?.message, 1);
-            setSubmit(false);
-          });
-      }
-      form.current.resetFields();
-      setValueForm({
-        _id: 0,
-        MaKhachHang: 0,
-        DiaChi: "",
-        email: "",
-        SDT: "",
-        items: [
-          {
-            sanpham: null,
-            soluong: 1,
-          },
-        ],
-        MaTaiKhoan: null,
-        TrangThai: 0,
-        TinhTrangThanhToan: 0,
-        KieuThanhToan: "cod",
+    const itemsNew = groupBy(data.items, "sanpham");
+    const newData = [];
+    for (const [item, key] of Object.entries(itemsNew)) {
+      console.log(item, key);
+      newData.push({
+        sanpham: item,
+        soluong: key.map((p) => p.soluong).reduce((a, b) => a + b, 0),
       });
-      handleReloadData();
-      const actionProduct = getAll();
-      dispatch(actionProduct);
-      setVisible(false);
-   
+    }
+    let arrayItems = [];
+    if (isAdd) {
+      arrayItems = newData.map((p) => ({
+        sanpham: {
+          _id: p.sanpham,
+        },
+        soluong: p.soluong,
+      }));
+    } else {
+      arrayItems = newData.map((p) => ({
+        sanpham: {
+          _id: p.sanpham,
+        },
+        soluong: p.soluong,
+        soluongcu: valueForm.items.find((g) => g.sanpham == p.sanpham)
+          ? valueForm.items.find((g) => g.sanpham == g.sanpham).soluong
+          : 0,
+      }));
+    }
+
+    if (data.TrangThai == 1 && !isAdd) {
+      const action = await saveOrder({
+        ...data,
+        items: arrayItems,
+        _id: valueForm._id,
+        NgayHoanThanh: new Date(),
+      })
+        .then((res) => {
+          setSubmit(false);
+          message.success("Success", 0.6);
+        })
+        .catch((err) => {
+          message.error(err.response?.data?.message, 1);
+          setSubmit(false);
+        });
+    } else {
+      const action = await saveOrder({
+        ...data,
+        items: arrayItems,
+        _id: valueForm._id,
+      })
+        .then((res) => {
+          setSubmit(false);
+          message.success("Success", 0.6);
+        })
+        .catch((err) => {
+          message.error(err.response?.data?.message, 1);
+          setSubmit(false);
+        });
+    }
+    form.current.resetFields();
+    setValueForm({
+      _id: 0,
+      MaKhachHang: 0,
+      DiaChi: "",
+      email: "",
+      SDT: "",
+      items: [
+        {
+          sanpham: null,
+          soluong: 1,
+        },
+      ],
+      MaTaiKhoan: null,
+      TrangThai: 0,
+      TinhTrangThanhToan: 0,
+      KieuThanhToan: "cod",
+    });
+    handleReloadData();
+    const actionProduct = getAll();
+    dispatch(actionProduct);
+    setVisible(false);
   };
 
   const getCustomer = (value) => {
@@ -597,8 +623,6 @@ function ListOrder(props) {
     }, 300);
   };
 
-
-
   const getProductFilter = (value) => {
     let timeout;
     if (timeout) {
@@ -613,7 +637,7 @@ function ListOrder(props) {
       });
       dispatch(action);
     }, 300);
-  }
+  };
   useEffect(() => {
     if (!isAdd) {
       form.current?.setFieldsValue({
@@ -657,6 +681,16 @@ function ListOrder(props) {
     dispatch(actionProduct);
     const actionUser = getAllUs();
     dispatch(actionUser);
+    console.log(
+      data.map((p) => ({
+        _id: p._id,
+        total: p.TongTien,
+        items: p.items
+          .map((c) => c.sanpham.TenSanPham + " * " + c.soluong)
+          .reduce((a, b) => a + b),
+      })),
+      "Hello"
+    );
   }, []);
   const onChange = async (value) => {
     const res = await axios.get(
@@ -675,6 +709,7 @@ function ListOrder(props) {
     const action = getAll();
     dispatch(action);
   };
+
   return (
     <div>
       <Button
@@ -684,6 +719,32 @@ function ListOrder(props) {
       >
         {t("order.add")}
       </Button>
+      <ExcelFile
+        element={
+          <Button type="primary" style={{ margin: "10px 10px" }}>
+            Export excel
+          </Button>
+        }
+      >
+        <ExcelSheet
+          data={data.map((p) => ({
+            _id: p._id,
+            total: p.TongTien,
+            items: p.items
+              .map((c) => c.sanpham.TenSanPham + " * " + c.soluong)
+              .reduce((a, b) => a + "," + b),
+          }))}
+          name="Orders"
+        >
+          <ExcelColumn label="ID" value="_id" />
+          <ExcelColumn label="Total" value="total" />
+          <ExcelColumn
+            label="Items"
+            value="items"
+            style={{ alignment: { wrapText: true } }}
+          />
+        </ExcelSheet>
+      </ExcelFile>
       <Drawer
         visible={visible}
         placement="right"
@@ -840,8 +901,8 @@ function ListOrder(props) {
                                   placeholder={t && t("order.Selectaproduct")}
                                   onChange={onChangeProduct}
                                   onSearch={getProductFilter}
-                  defaultActiveFirstOption={false}
-                  filterOption={false}
+                                  defaultActiveFirstOption={false}
+                                  filterOption={false}
                                 >
                                   {products.map((product, index) => (
                                     <Option key={index} value={product._id}>
@@ -992,6 +1053,114 @@ function ListOrder(props) {
         loading={loading}
         rowKey="_id"
       />
+      <div style={{ display: "none"}}>
+      <div class="invoice-box" ref={componentRef}>
+        <table cellPadding="0" cellSpacing="0">
+          <tr class="top">
+            <td colspan="3">
+              <table>
+                <tr>
+                  <td class="title">
+                    <img
+                      src="https://opencart.mahardhi.com/MT04/vegelite/image/catalog/logo.png"
+                      style={{ width: "auto", objectFit: "fill" }}
+                    />
+                  </td>
+
+                  <td>
+                    Invoice #: {print._id}
+                    <br />
+                    Created:{" "}
+                    {moment(print.createdAt).format("HH:mm | DD/MM/YYYY")}
+                    <br />
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr class="information">
+            <td colspan="3">
+              <table>
+                <tr>
+                  <td>
+                    Tên khách hàng
+                    <br />
+                    Số điện thoại
+                    <br />
+                    Email
+                  </td>
+
+                  <td>
+                    {print &&
+                      print.MaKhachHang &&
+                      print.MaKhachHang.TenKhachHang &&
+                      print?.MaKhachHang?.TenKhachHang}
+                    <br />
+                    {print && print.SDT && print?.SDT}
+                    <br />
+                    {print && print.email && print?.email}
+                  </td>
+                  <td></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr class="heading">
+            <td>Payment Method</td>
+                      <td></td>
+                      <td></td>
+          </tr>
+
+          <tr class="details">
+            <td style={{ textTransform: 'uppercase'}}>{print?.KieuThanhToan}</td>
+            <td></td>
+                      <td></td>
+          </tr>
+
+          <tr class="heading">
+            <td>Item</td>
+
+            <td>Price</td>
+            <td>Quantity</td>
+          </tr>
+         {
+           print && print.items ? print.items.map((p, i) => (
+            <tr class="item" key={i}>
+            <td>{p.sanpham.TenSanPham}</td>
+
+            <td>{p.sanpham.DonGia}đ</td>
+            <td>{p.soluong}</td>
+          </tr>
+           )) : <div>Không có sản phẩm nào</div>
+           
+         }
+          {/* <tr class="item">
+            <td>Website design</td>
+
+            <td>$300.00</td>
+          </tr>
+
+          <tr class="item">
+            <td>Hosting (3 months)</td>
+
+            <td>$75.00</td>
+          </tr>
+
+          <tr class="item last">
+            <td>Domain name (1 year)</td>
+            <td>$10.00</td>
+          </tr> */}
+
+          <tr class="total">
+            <td></td>
+            <td></td>
+            <td>Total: {print.TongTien}đ</td>
+          </tr>
+        </table>
+      </div>
+      </div>
     </div>
   );
 }
