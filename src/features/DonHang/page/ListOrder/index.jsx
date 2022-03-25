@@ -26,6 +26,7 @@ import {
 import { formatCurrency, formatPhone } from "app/format";
 import { deleteOrd, getAllOrd, saveOrd } from "features/DonHang/orderSlice";
 import { getAllCus } from "features/KhachHang/customerSlice";
+import { getAllDis } from "features/Discount/discountSlice";
 import { getAll } from "features/Product/productSlice";
 import { getAllUs } from "features/User/userSlice";
 import React, { useEffect, useRef, useState } from "react";
@@ -51,9 +52,13 @@ function ListOrder(props) {
   const total = useSelector((state) => state.orders.totalCount);
   const loading = useSelector((state) => state.orders.loading);
   const customers = useSelector((state) => state.customers.customers);
+  const discounts = useSelector((state) => state.discounts.discounts);
   const users = useSelector((state) => state.users.users);
   const products = useSelector((state) => state.products.products);
   const success = useSelector((state) => state.orders.success);
+  const [cities, setCities] = useState([])
+  const [district, setDistricts] = useState([])
+  const [wards, setWards] = useState([])
   const [print, setPrint] = useState({});
   const dispatch = useDispatch();
   const [visible, setVisible] = useState(false);
@@ -63,6 +68,7 @@ function ListOrder(props) {
   const [valueForm, setValueForm] = useState({
     _id: 0,
     MaKhachHang: 0,
+    Discount: null,
     DiaChi: "",
     email: "",
     SDT: "",
@@ -73,6 +79,26 @@ function ListOrder(props) {
       },
     ],
     MaTaiKhoan: null,
+    shippingAddress: {
+      provinceOrCity: {
+        id: null,
+        name: "",
+        pid: null,
+        code: null,
+      },
+      district: {
+        id: null,
+        name: "",
+        pid: null,
+        code: null,
+      },
+      ward: {
+        id: null,
+        name: "",
+        pid: null,
+        code: null,
+      },
+    },
     TrangThai: 0,
     TinhTrangThanhToan: 0,
     KieuThanhToan: "cod",
@@ -93,7 +119,7 @@ function ListOrder(props) {
       width: 250,
       render: (record) => (
         <div>
-           <Button type="link" onClick={() => handleOpen(record)}>
+          <Button type="link" onClick={() => handleOpen(record)}>
             {t("button.edit")}
           </Button>
           <Popconfirm
@@ -105,14 +131,18 @@ function ListOrder(props) {
               {t("button.delete")}
             </Button>
           </Popconfirm>
-          <Button type="link"  onClick={() => {
-            console.log(record);
-            setPrint(record);
-            setTimeout(() => {
-              handlePrint()
-            },500)
-          }}>Print</Button>
-         
+          <Button
+            type="link"
+            onClick={() => {
+              console.log(record);
+              setPrint(record);
+              setTimeout(() => {
+                handlePrint();
+              }, 500);
+            }}
+          >
+            Print
+          </Button>
         </div>
       ),
     },
@@ -275,7 +305,20 @@ function ListOrder(props) {
         </div>
       ),
     },
-
+    {
+      title: t && t("order.discount"),
+      dataIndex: "Discount",
+      key: "Discount",
+      render: (record) => (
+        <div>
+          {record && (
+            <Tag color="geekblue">
+              {record?.code + " - " + record?.discount}
+            </Tag>
+          )}
+        </div>
+      ),
+    },
     {
       title: t && t("order.total"),
       dataIndex: "TongTien",
@@ -352,7 +395,6 @@ function ListOrder(props) {
       key: "KieuThanhToan",
       render: (record) => <Tag color="green">{record}</Tag>,
     },
-    
   ];
   const handleOpen = async (formValue) => {
     if (formValue._id) {
@@ -365,6 +407,7 @@ function ListOrder(props) {
         DiaChi: formValue?.MaKhachHang?.DiaChi,
         email: formValue?.MaKhachHang?.email,
         SDT: formValue?.MaKhachHang?.SDT,
+        Discount: formValue?.Discount?._id,
         items: formValue?.items.map((p) => ({
           sanpham: p?.sanpham?._id,
           soluong: p?.soluong,
@@ -382,6 +425,7 @@ function ListOrder(props) {
       form.current?.setFieldsValue({
         _id: 0,
         MaKhachHang: 0,
+        Discount: 0,
         DiaChi: "",
         email: "",
         SDT: "",
@@ -392,6 +436,26 @@ function ListOrder(props) {
           },
         ],
         MaTaiKhoan: null,
+        shippingAddress: {
+          provinceOrCity: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+          district: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+          ward: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+        },
         TrangThai: 0,
         TinhTrangThanhToan: 0,
         KieuThanhToan: "cod",
@@ -399,9 +463,30 @@ function ListOrder(props) {
       setValueForm({
         _id: 0,
         MaKhachHang: 0,
+        Discount: 0,
         DiaChi: "",
         email: "",
         SDT: "",
+        shippingAddress: {
+          provinceOrCity: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+          district: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+          ward: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+        },
         items: [
           {
             sanpham: null,
@@ -423,9 +508,30 @@ function ListOrder(props) {
     setValueForm({
       _id: 0,
       MaKhachHang: 0,
+      Discount: 0,
       DiaChi: "",
       email: "",
       SDT: "",
+      shippingAddress: {
+        provinceOrCity: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+        district: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+        ward: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+      },
       items: [
         {
           sanpham: null,
@@ -571,6 +677,26 @@ function ListOrder(props) {
       DiaChi: "",
       email: "",
       SDT: "",
+      shippingAddress: {
+        provinceOrCity: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+        district: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+        ward: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+      },
       items: [
         {
           sanpham: null,
@@ -639,11 +765,23 @@ function ListOrder(props) {
       dispatch(action);
     }, 300);
   };
+
+  const getCities = async () => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`)
+    console.log(res.data," res")
+    setCities(res.data)
+  }
+  const onChangeCity = async (value) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`)
+    setDistricts(res.data)
+  }
   useEffect(() => {
     if (!isAdd) {
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang,
+        Discount: valueForm?.Discount,
+
         DiaChi: valueForm?.DiaChi,
         email: valueForm?.email,
         SDT: valueForm?.SDT,
@@ -657,6 +795,7 @@ function ListOrder(props) {
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang?._id,
+        Discount: valueForm?.Discount?._id,
         DiaChi: valueForm?.DiaChi,
         email: valueForm?.email,
         SDT: valueForm?.SDT,
@@ -682,16 +821,10 @@ function ListOrder(props) {
     dispatch(actionProduct);
     const actionUser = getAllUs();
     dispatch(actionUser);
-    console.log(
-      data.map((p) => ({
-        _id: p._id,
-        total: p.TongTien,
-        items: p.items
-          .map((c) => c.sanpham.TenSanPham + " * " + c.soluong)
-          .reduce((a, b) => a + b),
-      })),
-      "Hello"
-    );
+    dispatch(actionProduct);
+    const actionDis = getAllDis();
+    dispatch(actionDis);
+    getCities()
   }, []);
   const onChange = async (value) => {
     const res = await axios.get(
@@ -813,6 +946,62 @@ function ListOrder(props) {
               >
                 <Input />
               </Form.Item>
+              <Row style={{ width: "100%", justifyContent: "space-between" }} gutter="10">
+                <Col span={8}>
+                  <Form.Item name="shippingAdress" label="Tỉnh">
+                    <Select
+                      showSearch
+                      placeholder="Chọn tỉnh thành"
+                      onChange={onChangeCity}
+                      onSearch={getUser}
+                      defaultActiveFirstOption={false}
+                      filterOption={false}
+                    >
+                      {cities.map((city, index) => (
+                        <Option key={index} value={city?.id}>
+                          {city?.id + " | " + city?.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="Quận" label="Quận">
+                    <Select
+                      showSearch
+                      placeholder={t && t("order.Selectauser")}
+                      onChange={onChange}
+                      onSearch={getUser}
+                      defaultActiveFirstOption={false}
+                      filterOption={false}
+                    >
+                      {discounts.map((discount, index) => (
+                        <Option key={index} value={discount?._id}>
+                          {discount?._id + " | " + discount?.code}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="Xã" label="Xã">
+                    <Select
+                      showSearch
+                      placeholder={t && t("order.Selectauser")}
+                      onChange={onChange}
+                      onSearch={getUser}
+                      defaultActiveFirstOption={false}
+                      filterOption={false}
+                    >
+                      {discounts.map((discount, index) => (
+                        <Option key={index} value={discount?._id}>
+                          {discount?._id + " | " + discount?.code}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
               <Form.Item
                 label="Email"
                 name="email"
@@ -969,6 +1158,22 @@ function ListOrder(props) {
               </Form.List>
             </Panel>
             <Panel header={t && t("order.inforOrder")} key="3">
+              <Form.Item name="Discount" label={t && t("order.discount")}>
+                <Select
+                  showSearch
+                  placeholder={t && t("order.Selectauser")}
+                  onChange={onChange}
+                  onSearch={getUser}
+                  defaultActiveFirstOption={false}
+                  filterOption={false}
+                >
+                  {discounts.map((discount, index) => (
+                    <Option key={index} value={discount?._id}>
+                      {discount?._id + " | " + discount?.code}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
               <Form.Item name="MaTaiKhoan" label={t && t("order.selectUsr")}>
                 <Select
                   showSearch
@@ -1054,90 +1259,93 @@ function ListOrder(props) {
         loading={loading}
         rowKey="_id"
       />
-      <div style={{ display: "none"}}>
-      <div class="invoice-box" ref={componentRef} style={{ width: '100%' }}>
-        <table cellPadding="0" cellSpacing="0">
-          <tr class="top">
-            <td colSpan="3">
-              <table>
-                <tr>
-                  <td class="title">
-                    <img
-                      src="https://opencart.mahardhi.com/MT04/vegelite/image/catalog/logo.png"
-                      style={{ width: "auto", objectFit: "fill" }}
-                    />
-                  </td>
+      <div style={{ display: "none" }}>
+        <div class="invoice-box" ref={componentRef} style={{ width: "100%" }}>
+          <table cellPadding="0" cellSpacing="0">
+            <tr class="top">
+              <td colSpan="3">
+                <table>
+                  <tr>
+                    <td class="title">
+                      <img
+                        src="https://opencart.mahardhi.com/MT04/vegelite/image/catalog/logo.png"
+                        style={{ width: "auto", objectFit: "fill" }}
+                      />
+                    </td>
 
-                  <td>
-                    Invoice #: {print._id}
-                    <br />
-                    Created:{" "}
-                    {moment(print.createdAt).format("HH:mm | DD/MM/YYYY")}
-                    <br />
-                  </td>
+                    <td>
+                      Invoice #: {print._id}
+                      <br />
+                      Created:{" "}
+                      {moment(print.createdAt).format("HH:mm | DD/MM/YYYY")}
+                      <br />
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr class="information">
+              <td colSpan="3">
+                <table>
+                  <tr>
+                    <td>
+                      Tên khách hàng
+                      <br />
+                      Số điện thoại
+                      <br />
+                      Email
+                    </td>
+
+                    <td>
+                      {print &&
+                        print.MaKhachHang &&
+                        print.MaKhachHang.TenKhachHang &&
+                        print?.MaKhachHang?.TenKhachHang}
+                      <br />
+                      {print && print.SDT && print?.SDT}
+                      <br />
+                      {print && print.email && print?.email}
+                    </td>
+                    <td></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr class="heading">
+              <td>Payment Method</td>
+              <td></td>
+              <td></td>
+            </tr>
+
+            <tr class="details">
+              <td style={{ textTransform: "uppercase" }}>
+                {print?.KieuThanhToan}
+              </td>
+              <td></td>
+              <td></td>
+            </tr>
+
+            <tr class="heading">
+              <td>Item</td>
+
+              <td>Price</td>
+              <td align="right">Quantity</td>
+            </tr>
+            {print && print.items ? (
+              print.items.map((p, i) => (
+                <tr class="item" key={i}>
+                  <td>{p.sanpham.TenSanPham}</td>
+
+                  <td>{p.sanpham.DonGia}đ</td>
+                  <td align="right">{p.soluong}</td>
                 </tr>
-              </table>
-            </td>
-          </tr>
-
-          <tr class="information">
-            <td colSpan="3">
-              <table>
-                <tr>
-                  <td>
-                    Tên khách hàng
-                    <br />
-                    Số điện thoại
-                    <br />
-                    Email
-                  </td>
-
-                  <td>
-                    {print &&
-                      print.MaKhachHang &&
-                      print.MaKhachHang.TenKhachHang &&
-                      print?.MaKhachHang?.TenKhachHang}
-                    <br />
-                    {print && print.SDT && print?.SDT}
-                    <br />
-                    {print && print.email && print?.email}
-                  </td>
-                  <td></td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <tr class="heading">
-            <td>Payment Method</td>
-                      <td></td>
-                      <td></td>
-          </tr>
-
-          <tr class="details">
-            <td style={{ textTransform: 'uppercase'}}>{print?.KieuThanhToan}</td>
-            <td></td>
-                      <td></td>
-          </tr>
-
-          <tr class="heading">
-            <td>Item</td>
-
-            <td>Price</td>
-            <td align="right">Quantity</td>
-          </tr>
-         {
-           print && print.items ? print.items.map((p, i) => (
-            <tr class="item" key={i}>
-            <td>{p.sanpham.TenSanPham}</td>
-
-            <td>{p.sanpham.DonGia}đ</td>
-            <td align="right">{p.soluong}</td>
-          </tr>
-           )) : <div>Không có sản phẩm nào</div>
-           
-         }
-          {/* <tr class="item">
+              ))
+            ) : (
+              <div>Không có sản phẩm nào</div>
+            )}
+            {/* <tr class="item">
             <td>Website design</td>
 
             <td>$300.00</td>
@@ -1154,13 +1362,13 @@ function ListOrder(props) {
             <td>$10.00</td>
           </tr> */}
 
-          <tr class="total">
-            <td></td>
-            <td></td>
-            <td align="right">Total: {print.TongTien}đ</td>
-          </tr>
-        </table>
-      </div>
+            <tr class="total">
+              <td></td>
+              <td></td>
+              <td align="right">Total: {print.TongTien}đ</td>
+            </tr>
+          </table>
+        </div>
       </div>
     </div>
   );
