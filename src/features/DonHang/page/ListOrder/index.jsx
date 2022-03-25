@@ -69,7 +69,6 @@ function ListOrder(props) {
     _id: 0,
     MaKhachHang: 0,
     Discount: null,
-    DiaChi: "",
     email: "",
     SDT: "",
     items: [
@@ -83,6 +82,7 @@ function ListOrder(props) {
       provinceOrCity: null,
       district: null,
       ward: null,
+      detail: ""
     },
     TrangThai: 0,
     TinhTrangThanhToan: 0,
@@ -325,8 +325,8 @@ function ListOrder(props) {
     },
     {
       title: t && t("order.address"),
-      dataIndex: "DiaChi",
-      key: "DiaChi",
+      dataIndex: "shippingAddress",
+      key: "shippingAddress",
     },
     {
       title: t && t("order.created"),
@@ -389,7 +389,6 @@ function ListOrder(props) {
       setValueForm({
         _id: formValue?._id,
         MaKhachHang: formValue?.MaKhachHang?._id,
-        DiaChi: formValue?.MaKhachHang?.DiaChi,
         email: formValue?.MaKhachHang?.email,
         SDT: formValue?.MaKhachHang?.SDT,
         Discount: formValue?.Discount?._id,
@@ -415,8 +414,9 @@ function ListOrder(props) {
           provinceOrCity: null,
           district: null,
           ward: null,
+          detail: ""
+
         },
-        DiaChi: "",
         email: "",
         SDT: "",
         items: [
@@ -434,12 +434,13 @@ function ListOrder(props) {
         _id: 0,
         MaKhachHang: 0,
         Discount: 0,
-        DiaChi: "",
         email: "",
         shippingAddress: {
           provinceOrCity: null,
           district: null,
           ward: null,
+          detail: ""
+
         },
         SDT: "",
         items: [
@@ -463,13 +464,14 @@ function ListOrder(props) {
       _id: 0,
       MaKhachHang: 0,
       Discount: 0,
-      DiaChi: "",
       email: "",
       SDT: "",
       shippingAddress: {
         provinceOrCity: null,
         district: null,
         ward: null,
+        detail: ""
+
       },
       items: [
         {
@@ -628,7 +630,6 @@ function ListOrder(props) {
     setValueForm({
       _id: 0,
       MaKhachHang: 0,
-      DiaChi: "",
       email: "",
       SDT: "",
       shippingAddress: {
@@ -721,7 +722,6 @@ function ListOrder(props) {
         MaKhachHang: valueForm?.MaKhachHang,
         Discount: valueForm?.Discount,
         shippingAddress: valueForm?.shippingAddress,
-        DiaChi: valueForm?.DiaChi,
         email: valueForm?.email,
         SDT: valueForm?.SDT,
         MaTaiKhoan: valueForm?.MaTaiKhoan,
@@ -736,7 +736,6 @@ function ListOrder(props) {
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang?._id,
         Discount: valueForm?.Discount?._id,
-        DiaChi: valueForm?.DiaChi,
         shippingAddress: {...valueForm?.shippingAddress},
         email: valueForm?.email,
         SDT: valueForm?.SDT,
@@ -773,12 +772,12 @@ function ListOrder(props) {
       `${process.env.REACT_APP_API_URL}khachhangs/${value}`
     );
     if (res && res.data) {
-      setValueForm({...valueForm,MaKhachHang: res.data, DiaChi: res.data?.DiaChi, email: res.data?.email, SDT: res.data?.SDT})
-      form?.current?.setFieldsValue({
-        DiaChi: res.data?.DiaChi,
-        email: res.data?.email,
-        SDT: res.data?.SDT,
-      });
+      setValueForm({...valueForm,MaKhachHang: res.data, shippingAddress: {...valueForm.shippingAddress, detail: res.data?.DiaChi?.detail}, email: res.data?.email, SDT: res.data?.SDT})
+      // form?.current?.setFieldsValue({
+      //   shippingAddress: {},
+      //   email: res.data?.email,
+      //   SDT: res.data?.SDT,
+      // });
     }
   };
   const onChangeCity = async (value) => {
@@ -803,7 +802,14 @@ function ListOrder(props) {
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
     );
-
+    const layHang = await axios.get(
+      `https://thingproxy.freeboard.io/fetch/https://services.ghtklab.com/services/shipment/list_pick_add`, {
+        headers: {
+          Token: process.env.REACT_APP_TOKEN_GHTK,
+        }
+      }
+    );
+    console.log(layHang.data.data[0],"Jel")
     setWards(res.data);
     setValueForm({
       ...valueForm,
@@ -907,7 +913,7 @@ function ListOrder(props) {
               </Form.Item>
               <Form.Item
                 label={t && t("order.address")}
-                name="DiaChi"
+                name={["shippingAddress", "detail"]}
                 rules={[
                   {
                     required: true,
@@ -932,6 +938,7 @@ function ListOrder(props) {
                       onChange={onChangeCity}
                       defaultActiveFirstOption={false}
                       filterOption={false}
+                      disabled={!isAdd}
                     >
                       {cities.map((city, index) => (
                         <Option key={index} value={city?.id}>
@@ -949,6 +956,7 @@ function ListOrder(props) {
                       onChange={onChangeDistrict}
                       defaultActiveFirstOption={false}
                       filterOption={false}
+                      disabled={!isAdd}
                     >
                       {districts.map((district, index) => (
                         <Option key={index} value={district?.id}>
@@ -966,6 +974,7 @@ function ListOrder(props) {
                       onChange={onChange}
                       defaultActiveFirstOption={false}
                       filterOption={false}
+                      disabled={!isAdd}
                     >
                       {wards.map((ward, index) => (
                         <Option key={index} value={ward?.id}>
