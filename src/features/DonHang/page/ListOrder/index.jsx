@@ -56,9 +56,9 @@ function ListOrder(props) {
   const users = useSelector((state) => state.users.users);
   const products = useSelector((state) => state.products.products);
   const success = useSelector((state) => state.orders.success);
-  const [cities, setCities] = useState([])
-  const [district, setDistricts] = useState([])
-  const [wards, setWards] = useState([])
+  const [cities, setCities] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
   const [print, setPrint] = useState({});
   const dispatch = useDispatch();
   const [visible, setVisible] = useState(false);
@@ -80,24 +80,9 @@ function ListOrder(props) {
     ],
     MaTaiKhoan: null,
     shippingAddress: {
-      provinceOrCity: {
-        id: null,
-        name: "",
-        pid: null,
-        code: null,
-      },
-      district: {
-        id: null,
-        name: "",
-        pid: null,
-        code: null,
-      },
-      ward: {
-        id: null,
-        name: "",
-        pid: null,
-        code: null,
-      },
+      provinceOrCity: null,
+      district: null,
+      ward: null,
     },
     TrangThai: 0,
     TinhTrangThanhToan: 0,
@@ -426,6 +411,11 @@ function ListOrder(props) {
         _id: 0,
         MaKhachHang: 0,
         Discount: 0,
+        shippingAddress: {
+          provinceOrCity: null,
+          district: null,
+          ward: null,
+        },
         DiaChi: "",
         email: "",
         SDT: "",
@@ -436,26 +426,6 @@ function ListOrder(props) {
           },
         ],
         MaTaiKhoan: null,
-        shippingAddress: {
-          provinceOrCity: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
-          district: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
-          ward: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
-        },
         TrangThai: 0,
         TinhTrangThanhToan: 0,
         KieuThanhToan: "cod",
@@ -466,27 +436,12 @@ function ListOrder(props) {
         Discount: 0,
         DiaChi: "",
         email: "",
-        SDT: "",
         shippingAddress: {
-          provinceOrCity: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
-          district: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
-          ward: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
+          provinceOrCity: null,
+          district: null,
+          ward: null,
         },
+        SDT: "",
         items: [
           {
             sanpham: null,
@@ -502,7 +457,6 @@ function ListOrder(props) {
 
     setVisible(true);
   };
-
   const handleClose = () => {
     setVisible(false);
     setValueForm({
@@ -513,24 +467,9 @@ function ListOrder(props) {
       email: "",
       SDT: "",
       shippingAddress: {
-        provinceOrCity: {
-          id: null,
-          name: "",
-          pid: null,
-          code: null,
-        },
-        district: {
-          id: null,
-          name: "",
-          pid: null,
-          code: null,
-        },
-        ward: {
-          id: null,
-          name: "",
-          pid: null,
-          code: null,
-        },
+        provinceOrCity: null,
+        district: null,
+        ward: null,
       },
       items: [
         {
@@ -608,8 +547,23 @@ function ListOrder(props) {
       pageSize: pagination.pageSize,
     });
   };
-
+  const formatAddress = async (parent,value) => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${parent}`
+    );
+    const data = res.data.find(p => p.id == value)
+    return {
+      id: data.id, 
+      name: data.name,
+      pid: data.pid
+    }
+  }
   const finishForm = async (data) => {
+    const provinceOrCity = await formatAddress(0,data.shippingAddress.provinceOrCity)
+    const district = await formatAddress(data.shippingAddress.provinceOrCity,data.shippingAddress.district)
+    const ward = await formatAddress(data.shippingAddress.district,data.shippingAddress.ward)
+    data = {...data, shippingAddress : { provinceOrCity: (provinceOrCity), district: (district), ward: (ward) }}
+    console.log(data);
     setSubmit(true);
     const itemsNew = groupBy(data.items, "sanpham");
     const newData = [];
@@ -678,24 +632,9 @@ function ListOrder(props) {
       email: "",
       SDT: "",
       shippingAddress: {
-        provinceOrCity: {
-          id: null,
-          name: "",
-          pid: null,
-          code: null,
-        },
-        district: {
-          id: null,
-          name: "",
-          pid: null,
-          code: null,
-        },
-        ward: {
-          id: null,
-          name: "",
-          pid: null,
-          code: null,
-        },
+        provinceOrCity: null,
+        district: null,
+        ward: null,
       },
       items: [
         {
@@ -767,21 +706,21 @@ function ListOrder(props) {
   };
 
   const getCities = async () => {
-    const res = await axios.get(`${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`)
-    console.log(res.data," res")
-    setCities(res.data)
-  }
-  const onChangeCity = async (value) => {
-    const res = await axios.get(`${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`)
-    setDistricts(res.data)
-  }
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`
+    );
+    setCities(res.data);
+    setDistricts([]);
+    setWards([]);
+  };
+
   useEffect(() => {
     if (!isAdd) {
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang,
         Discount: valueForm?.Discount,
-
+        shippingAddress: valueForm?.shippingAddress,
         DiaChi: valueForm?.DiaChi,
         email: valueForm?.email,
         SDT: valueForm?.SDT,
@@ -792,11 +731,13 @@ function ListOrder(props) {
         items: valueForm?.items,
       });
     } else {
+      console.log(valueForm?.shippingAddress, "Add")
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang?._id,
         Discount: valueForm?.Discount?._id,
         DiaChi: valueForm?.DiaChi,
+        shippingAddress: {...valueForm?.shippingAddress},
         email: valueForm?.email,
         SDT: valueForm?.SDT,
         items: [
@@ -811,6 +752,7 @@ function ListOrder(props) {
         KieuThanhToan: "cod",
       });
     }
+    console.log(form.current?.getFieldsValue())
   }, [valueForm]);
 
   useEffect(() => {
@@ -824,13 +766,14 @@ function ListOrder(props) {
     dispatch(actionProduct);
     const actionDis = getAllDis();
     dispatch(actionDis);
-    getCities()
+    getCities();
   }, []);
   const onChange = async (value) => {
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}khachhangs/${value}`
     );
     if (res && res.data) {
+      setValueForm({...valueForm,MaKhachHang: res.data, DiaChi: res.data?.DiaChi, email: res.data?.email, SDT: res.data?.SDT})
       form?.current?.setFieldsValue({
         DiaChi: res.data?.DiaChi,
         email: res.data?.email,
@@ -838,7 +781,35 @@ function ListOrder(props) {
       });
     }
   };
+  const onChangeCity = async (value) => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
+    );
 
+    setDistricts(res.data);
+    setWards([]);
+    console.log(valueForm, "change city")
+    setValueForm({
+      ...valueForm,
+      shippingAddress: {
+        provinceOrCity: value,
+        district: null,
+        ward: null,
+      },
+    });
+    console.log(valueForm)
+  };
+  const onChangeDistrict = async (value) => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
+    );
+
+    setWards(res.data);
+    setValueForm({
+      ...valueForm,
+      shippingAddress: { ...valueForm.shippingAddress, district: value , ward: null },
+    });
+  };
   const onChangeProduct = async (value) => {
     const action = getAll();
     dispatch(action);
@@ -946,14 +917,19 @@ function ListOrder(props) {
               >
                 <Input />
               </Form.Item>
-              <Row style={{ width: "100%", justifyContent: "space-between" }} gutter="10">
+              <Row
+                style={{ width: "100%", justifyContent: "space-between" }}
+                gutter="10"
+              >
                 <Col span={8}>
-                  <Form.Item name="shippingAdress" label="Tỉnh">
+                  <Form.Item
+                    name={["shippingAddress", "provinceOrCity"]}
+                    label="Tỉnh"
+                  >
                     <Select
                       showSearch
                       placeholder="Chọn tỉnh thành"
                       onChange={onChangeCity}
-                      onSearch={getUser}
                       defaultActiveFirstOption={false}
                       filterOption={false}
                     >
@@ -966,36 +942,34 @@ function ListOrder(props) {
                   </Form.Item>
                 </Col>
                 <Col span={8}>
-                  <Form.Item name="Quận" label="Quận">
+                  <Form.Item name={["shippingAddress", "district"]} label="Quận">
                     <Select
                       showSearch
                       placeholder={t && t("order.Selectauser")}
-                      onChange={onChange}
-                      onSearch={getUser}
+                      onChange={onChangeDistrict}
                       defaultActiveFirstOption={false}
                       filterOption={false}
                     >
-                      {discounts.map((discount, index) => (
-                        <Option key={index} value={discount?._id}>
-                          {discount?._id + " | " + discount?.code}
+                      {districts.map((district, index) => (
+                        <Option key={index} value={district?.id}>
+                          {district?.id + " | " + district?.name}
                         </Option>
                       ))}
                     </Select>
                   </Form.Item>
                 </Col>
                 <Col span={8}>
-                  <Form.Item name="Xã" label="Xã">
+                  <Form.Item name={["shippingAddress", "ward"]} label="Xã">
                     <Select
                       showSearch
                       placeholder={t && t("order.Selectauser")}
                       onChange={onChange}
-                      onSearch={getUser}
                       defaultActiveFirstOption={false}
                       filterOption={false}
                     >
-                      {discounts.map((discount, index) => (
-                        <Option key={index} value={discount?._id}>
-                          {discount?._id + " | " + discount?.code}
+                      {wards.map((ward, index) => (
+                        <Option key={index} value={ward?.id}>
+                          {ward?.id + " | " + ward?.name}
                         </Option>
                       ))}
                     </Select>
