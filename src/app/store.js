@@ -2,8 +2,6 @@ import { configureStore,getDefaultMiddleware } from "@reduxjs/toolkit";
 import blogSlice from 'features/Blog/blogSlice'
 import imageSlice from 'features/HinhAnh/hinhanhSlice'
 import categoryProductSlice from 'features/CategoryProduct/categoryProductSlice'
-import discountSlice from 'features/Discount/discountSlice'
-
 import productSlice from 'features/Product/productSlice'
 import loginSlice from 'features/Login/loginSlice'
 import userSlice from 'features/User/userSlice'
@@ -21,8 +19,7 @@ const rootReducer = {
     categoryBlogs: categoryBlogSlice,
     blogs: blogSlice,
     customers: customerSlice,
-    orders: orderSlice,
-    discounts: discountSlice
+    orders: orderSlice
 }
 
 const store = configureStore({

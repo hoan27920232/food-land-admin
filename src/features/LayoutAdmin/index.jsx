@@ -7,8 +7,7 @@ import {
   ShopOutlined,
   TeamOutlined,
   FormOutlined,
-  UserOutlined,
-  TagOutlined
+  UserOutlined
 } from '@ant-design/icons';
 import { Avatar, Breadcrumb, Layout, Menu, Sider, Typography } from 'antd';
 import Logout from 'components/Logout';
@@ -21,8 +20,6 @@ import HinhAnh from 'features/HinhAnh';
 import Home from 'features/Home';
 import KhachHang from 'features/KhachHang';
 import User from 'features/User';
-
-import Discount from 'features/Discount';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, Route, Switch, useLocation } from 'react-router-dom';
@@ -86,25 +83,21 @@ function LayoutAdmin(props) {
       {
         setSelectedKeys("7")
       }
-      else if(location.pathname == "/discounts")
+      else if(location.pathname == "/customers")
       {
         setSelectedKeys("8")
       }
-      else if(location.pathname == "/customers")
+      else if(location.pathname == "/users")
       {
         setSelectedKeys("9")
       }
-      else if(location.pathname == "/users")
+      else if(location.pathname == "/settings")
       {
         setSelectedKeys("10")
       }
-      else if(location.pathname == "/settings")
-      {
-        setSelectedKeys("11")
-      }
       else if(location.pathname == "/me")
       {
-        setSelectedKeys("12")
+        setSelectedKeys("11")
       }
       else{
         setSelectedKeys("1")
@@ -158,19 +151,16 @@ function LayoutAdmin(props) {
             <Menu.Item key="7" icon={<GiftOutlined />} onClick={() => handleSetKeys("7")}>
             <Link to="/orders">{t("menu.orders")}</Link>
             </Menu.Item>
-            <Menu.Item key="8" icon={<TagOutlined />} onClick={() => handleSetKeys("8")}>
-            <Link to="/discounts">{t("menu.discounts")}</Link>
-            </Menu.Item>
-            <Menu.Item key="9" icon={<TeamOutlined />} onClick={() => handleSetKeys("9")}>
+            <Menu.Item key="8" icon={<TeamOutlined />} onClick={() => handleSetKeys("8")}>
             <Link to="/customers">{t("menu.customers")}</Link>
             </Menu.Item>
-            <Menu.Item key="10" icon={<IdcardOutlined />} onClick={() => handleSetKeys("10")}>
+            <Menu.Item key="9" icon={<IdcardOutlined />} onClick={() => handleSetKeys("9")}>
             <Link to="/users">{t("menu.users")}</Link>
             </Menu.Item>
-            <Menu.Item key="11" icon={<SettingOutlined />} onClick={() => handleSetKeys("11")}>
+            <Menu.Item key="10" icon={<SettingOutlined />} onClick={() => handleSetKeys("10")}>
             <Link to="/settings">{t("menu.settings")}</Link>
             </Menu.Item>
-            <Menu.Item key="12" icon={<UserOutlined />} onClick={() => handleSetKeys("12")}>
+            <Menu.Item key="11" icon={<UserOutlined />} onClick={() => handleSetKeys("11")}>
             <Link to="/me">{t("menu.me")}</Link>
             </Menu.Item>
           </Menu>
@@ -189,11 +179,10 @@ function LayoutAdmin(props) {
                 {selectedKeys == "5" && t("menu.blogs")}
                 {selectedKeys == "6" && t("menu.categoryBlog")}
                 {selectedKeys == "7" && t("menu.orders")}
-                {selectedKeys == "8" && t("menu.discounts")}
-                {selectedKeys == "9" && t("menu.customers")}
-                {selectedKeys == "10" && t("menu.users")}
-                {selectedKeys == "11" && t("menu.settings")}
-                {selectedKeys == "12" && t("menu.me")}
+                {selectedKeys == "8" && t("menu.customers")}
+                {selectedKeys == "9" && t("menu.users")}
+                {selectedKeys == "10" && t("menu.settings")}
+                {selectedKeys == "11" && t("menu.me")}
               </Breadcrumb.Item>
             </Breadcrumb>
             <div
@@ -212,7 +201,6 @@ function LayoutAdmin(props) {
                 <Route path="/orders" component={DonHang} />
                 <Route path="/settings" component={Setting} />
                 <Route path="/me" component={MeInfo} />
-                <Route path="/discounts" component={Discount} />
               </Switch>
             </div>
           </Content>

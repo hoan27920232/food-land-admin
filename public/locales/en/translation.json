@@ -11,26 +11,12 @@
         "users": "Users",
         "settings": "Settings",
         "welcome": "Welcome",
-        "me": "My information",
-        "discounts": "Discounts"
-
+        "me": "My information"
     },
     "categoryProduct": {
         "add": "Add category",
         "category": "Category",
         "Pleaseinputyourcategory": "Please input your category !"
-    },
-    "discount": {
-        "code": "Code",
-        "discount": "Discount",
-        "startDate": "Start date",
-        "endDate": "End date",
-        "active": "Active",
-        "add": "Add discount",
-        "Pleaseenteryourcode": "Please enter your code",
-        "Pleaseenteryourdiscount": "Please enter your discount",
-        "Pleaseenteryourstartdate": "Please chose your start date",
-        "Pleaseenteryourenddate": "Please chóe your end date"
     },
     "assets": {
         "upload": "Upload"
@@ -67,8 +53,6 @@
         "selectCus": "Select customer",
         "user": "User",
         "selectUsr": "Select user",
-        "discount": "Discount",
-
         "total": "Total amount",
         "phone": "Phone number",
         "address": "Address",
