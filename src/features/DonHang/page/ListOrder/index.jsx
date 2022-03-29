@@ -244,8 +244,8 @@ function ListOrder(props) {
     },
     {
       title: t && t("order.address"),
-      dataIndex: "DiaChi",
-      key: "DiaChi",
+      dataIndex: "shippingAddress",
+      key: "shippingAddress",
     },
     {
       title: t && t("order.created"),
@@ -331,9 +331,9 @@ function ListOrder(props) {
       setValueForm({
         _id: formValue?._id,
         MaKhachHang: formValue?.MaKhachHang?._id,
-        DiaChi: formValue?.MaKhachHang?.DiaChi,
         email: formValue?.MaKhachHang?.email,
         SDT: formValue?.MaKhachHang?.SDT,
+        DiaChi: formValue?.DiaChi,
         items: formValue?.items.map((p) => ({
           sanpham: p?.sanpham?._id,
           soluong: p?.soluong,
@@ -387,7 +387,6 @@ function ListOrder(props) {
 
     setVisible(true);
   };
-
   const handleClose = () => {
     setVisible(false);
     setValueForm({
@@ -474,8 +473,23 @@ function ListOrder(props) {
       pageSize: pagination.pageSize,
     });
   };
-
+  const formatAddress = async (parent,value) => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${parent}`
+    );
+    const data = res.data.find(p => p.id == value)
+    return {
+      id: data.id, 
+      name: data.name,
+      pid: data.pid
+    }
+  }
   const finishForm = async (data) => {
+    // const provinceOrCity = await formatAddress(0,data.shippingAddress.provinceOrCity)
+    // const district = await formatAddress(data.shippingAddress.provinceOrCity,data.shippingAddress.district)
+    // const ward = await formatAddress(data.shippingAddress.district,data.shippingAddress.ward)
+    // data = {...data, shippingAddress : { provinceOrCity: (provinceOrCity), district: (district), ward: (ward) }}
+    // console.log(data);
     setSubmit(true);
       const itemsNew = groupBy(data.items, "sanpham");
       const newData = [];
@@ -629,6 +643,7 @@ function ListOrder(props) {
         items: valueForm?.items,
       });
     } else {
+      console.log(valueForm?.shippingAddress, "Add")
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang?._id,
@@ -647,6 +662,7 @@ function ListOrder(props) {
         KieuThanhToan: "cod",
       });
     }
+    console.log(form.current?.getFieldsValue())
   }, [valueForm]);
 
   useEffect(() => {
@@ -662,6 +678,7 @@ function ListOrder(props) {
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}khachhangs/${value}`
     );
+    console.log(res.data)
     if (res && res.data) {
       form?.current?.setFieldsValue({
         DiaChi: res.data?.DiaChi,
@@ -670,7 +687,6 @@ function ListOrder(props) {
       });
     }
   };
-
   const onChangeProduct = async (value) => {
     const action = getAll();
     dispatch(action);
