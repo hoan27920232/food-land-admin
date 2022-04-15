@@ -63,6 +63,7 @@ function ListProduct(props) {
     MoTa: "",
     SoLuong: null,
     SoLuongDaBan: null,
+    KhoiLuong: null,
     DanhMucSP: null,
     AnhMoTa: [],
   });
@@ -181,6 +182,11 @@ function ListProduct(props) {
       render: (record) => <span>{record?.TenDanhMucSP}</span>,
     },
     {
+      title: "Khối lượng",
+      dataIndex: "KhoiLuong",
+      key: "KhoiLuong",
+    },
+    {
       title: t && t("button.action"),
       dataIndex: "",
       key: "x",
@@ -222,6 +228,7 @@ function ListProduct(props) {
         DonGia: formValue.DonGia,
         MoTa: BraftEditor.createEditorState(formValue.MoTa),
         SoLuong: formValue.SoLuong,
+        KhoiLuong: formValue.KhoiLuong,
         SoLuongDaBan: formValue.SoLuongDaBan,
         DanhMucSP: formValue.DanhMucSP._id,
         AnhMoTa: formValue.AnhMoTa,
@@ -234,6 +241,7 @@ function ListProduct(props) {
         DonGia: null,
         MoTa: "",
         SoLuong: null,
+        KhoiLuong: null,
         SoLuongDaBan: null,
         DanhMucSP: null,
         AnhMoTa: [],
@@ -244,6 +252,7 @@ function ListProduct(props) {
         DonGia: 0,
         MoTa: BraftEditor.createEditorState(""),
         SoLuong: 0,
+        KhoiLuong: 0,
         SoLuongDaBan: 0,
         DanhMucSP: null,
         AnhMoTa: [],
@@ -274,6 +283,7 @@ function ListProduct(props) {
       MoTa: BraftEditor.createEditorState(""),
       SoLuong: null,
       SoLuongDaBan: null,
+      KhoiLuong: null,
       DanhMucSP: null,
       AnhMoTa: [],
     });
@@ -411,7 +421,6 @@ function ListProduct(props) {
 
   useEffect(() => {
     if (!add) {
-      console.log(valueForm.MoTa, "Hello");
       form.current?.setFieldsValue({
         _id: valueForm._id,
         TenSanPham: valueForm.TenSanPham,
@@ -419,6 +428,7 @@ function ListProduct(props) {
         MoTa: valueForm.MoTa,
         SoLuong: valueForm.SoLuong,
         SoLuongDaBan: valueForm.SoLuongDaBan,
+        KhoiLuong: valueForm.KhoiLuong,
         DanhMucSP: valueForm.DanhMucSP,
         AnhMoTa: valueForm.AnhMoTa,
       });
@@ -513,6 +523,20 @@ function ListProduct(props) {
               <Form.Item
                 label={t && t("product.quantitySold")}
                 name="SoLuongDaBan"
+                rules={[
+                  {
+                    required: true,
+                    message: t("product.Pleaseenteryourquantitysoldofproduct"),
+                    type: "number",
+                    min: 0,
+                  },
+                ]}
+              >
+                <InputNumber />
+              </Form.Item>
+              <Form.Item
+                label="Khối lượng"
+                name="KhoiLuong"
                 rules={[
                   {
                     required: true,

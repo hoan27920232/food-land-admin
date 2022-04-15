@@ -56,12 +56,13 @@ function ListOrder(props) {
   const users = useSelector((state) => state.users.users);
   const products = useSelector((state) => state.products.products);
   const success = useSelector((state) => state.orders.success);
-  const [cities, setCities] = useState([])
-  const [district, setDistricts] = useState([])
-  const [wards, setWards] = useState([])
+  const [cities, setCities] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
   const [print, setPrint] = useState({});
   const dispatch = useDispatch();
   const [visible, setVisible] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(false)
   const [isAdd, setIsAdd] = useState(false);
   const { Panel } = Collapse;
   const [submit, setSubmit] = useState(false);
@@ -72,6 +73,7 @@ function ListOrder(props) {
     DiaChi: "",
     email: "",
     SDT: "",
+    shipMoney: 0,
     items: [
       {
         sanpham: null,
@@ -395,11 +397,19 @@ function ListOrder(props) {
       key: "KieuThanhToan",
       render: (record) => <Tag color="green">{record}</Tag>,
     },
+    {
+      title: 'Shipping address',
+      dataIndex: 'shippingAddress',
+      key: 'shippingAddress',
+      className: 'hidden'
+    }
   ];
   const handleOpen = async (formValue) => {
+  
     if (formValue._id) {
       setIsAdd(false);
       console.log(formValue);
+    
       //   const getDataCustomer = await axios.get(`${process.env.REACT_APP_API_URL}khachhangs/${}`)
       setValueForm({
         _id: formValue?._id,
@@ -408,6 +418,8 @@ function ListOrder(props) {
         email: formValue?.MaKhachHang?.email,
         SDT: formValue?.MaKhachHang?.SDT,
         Discount: formValue?.Discount?._id,
+        shipMoney: formValue?.shipMoney,
+        shippingAddress: formValue?.shippingAddress,
         items: formValue?.items.map((p) => ({
           sanpham: p?.sanpham?._id,
           soluong: p?.soluong,
@@ -429,6 +441,7 @@ function ListOrder(props) {
         DiaChi: "",
         email: "",
         SDT: "",
+        shipMoney: 0,
         items: [
           {
             sanpham: null,
@@ -437,24 +450,9 @@ function ListOrder(props) {
         ],
         MaTaiKhoan: null,
         shippingAddress: {
-          provinceOrCity: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
-          district: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
-          ward: {
-            id: null,
-            name: "",
-            pid: null,
-            code: null,
-          },
+          provinceOrCity: null,
+          district: null,
+          ward: null,
         },
         TrangThai: 0,
         TinhTrangThanhToan: 0,
@@ -465,6 +463,7 @@ function ListOrder(props) {
         MaKhachHang: 0,
         Discount: 0,
         DiaChi: "",
+        shipMoney: 0,
         email: "",
         SDT: "",
         shippingAddress: {
@@ -499,8 +498,18 @@ function ListOrder(props) {
         KieuThanhToan: "cod",
       });
     }
-
+    
     setVisible(true);
+    if(formValue._id) {
+      const districts = await axios.get(
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.shippingAddress.district.pid}`
+      );
+      setDistricts(districts.data)
+      const wards = await axios.get(
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.shippingAddress.ward.pid}`
+      );
+      setWards(wards.data)
+    }
   };
 
   const handleClose = () => {
@@ -512,6 +521,7 @@ function ListOrder(props) {
       DiaChi: "",
       email: "",
       SDT: "",
+      shipMoney: 0,
       shippingAddress: {
         provinceOrCity: {
           id: null,
@@ -608,9 +618,31 @@ function ListOrder(props) {
       pageSize: pagination.pageSize,
     });
   };
-
+  const formatAddress = (data) => {
+    return {
+      id: data?.id ? data.id : null,
+      name: data?.name ? data.name : null,
+      pid: data?.pid ? data.pid : null,
+      code: data?.id ? data.id : null,
+    };
+  };
   const finishForm = async (data) => {
     setSubmit(true);
+    const city = formatAddress(
+      cities.find((p) => p.id == data.shippingAddress.provinceOrCity)
+    );
+    const district = formatAddress(
+      districts.find((p) => p.id == data.shippingAddress.district)
+    );
+    const ward = formatAddress(
+      wards.find((p) => p.id == data.shippingAddress.ward)
+    );
+    data.shippingAddress = {
+      ...data.shippingAddress,
+      provinceOrCity: city,
+      district: district,
+      ward: ward,
+    };
     const itemsNew = groupBy(data.items, "sanpham");
     const newData = [];
     for (const [item, key] of Object.entries(itemsNew)) {
@@ -677,6 +709,7 @@ function ListOrder(props) {
       DiaChi: "",
       email: "",
       SDT: "",
+      shipMoney: 0,
       shippingAddress: {
         provinceOrCity: {
           id: null,
@@ -767,36 +800,106 @@ function ListOrder(props) {
   };
 
   const getCities = async () => {
-    const res = await axios.get(`${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`)
-    console.log(res.data," res")
-    setCities(res.data)
-  }
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`
+    );
+    console.log(res.data, " res");
+    setCities(res.data);
+  };
   const onChangeCity = async (value) => {
-    const res = await axios.get(`${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`)
-    setDistricts(res.data)
-  }
+    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    form?.current?.setFieldsValue({
+      shippingAddress: { ...shippingAddress, district: null, ward: null },
+    });
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
+    );
+    setDistricts(res.data);
+  };
+  const onChangeDistrict = async (value) => {
+    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    form?.current?.setFieldsValue({
+      shippingAddress: { ...shippingAddress, ward: null },
+    });
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
+    );
+    setWards(res.data);
+  };
+  const onChangeWard = async (value) => {
+    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    let items = form?.current?.getFieldValue("items");
+    items = items.filter(p => p.sanpham)
+    let fullItems = [];
+    let weight = 0;
+    const city = formatAddress(
+      cities.find((p) => p.id == shippingAddress.provinceOrCity)
+    );
+    const district = formatAddress(
+      districts.find((p) => p.id == shippingAddress.district)
+    );
+    if(items.length > 0) {
+      console.log("Hello")
+     fullItems = await axios.get(`${process.env.REACT_APP_API_URL}sanphams?_id=${items.map(p => p.sanpham).join(',')}`)
+     weight = fullItems.data.result.data.reduce((a,b) => {
+      return Number.parseFloat(a.KhoiLuong || 0) + Number.parseFloat(b.KhoiLuong || 0)
+    }, 0)
+    }
+    
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/calculateShip`,
+      {
+        params: {
+          province: city.name,
+          district: district.name,
+          weight: weight
+        },
+      }
+    );
+    form?.current?.setFieldsValue({
+      shipMoney: res.data.ship.fee.fee,
+    });
+  };
   useEffect(() => {
     if (!isAdd) {
+      console.log(valueForm, "Hello")
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang,
         Discount: valueForm?.Discount,
-
         DiaChi: valueForm?.DiaChi,
         email: valueForm?.email,
         SDT: valueForm?.SDT,
+        shipMoney: valueForm?.shipMoney,
         MaTaiKhoan: valueForm?.MaTaiKhoan,
         TrangThai: valueForm?.TrangThai,
         TinhTrangThanhToan: valueForm?.TinhTrangThanhToan,
         KieuThanhToan: valueForm?.KieuThanhToan,
         items: valueForm?.items,
+        shippingAddress: {
+          provinceOrCity: valueForm?.shippingAddress?.provinceOrCity?.id,
+          district: valueForm?.shippingAddress?.district?.id,
+          ward: valueForm?.shippingAddress?.ward?.id,
+        },
       });
+      // form.current?.setFieldsValue(
+      //   `shippingAddress.provinceOrCity`,
+      //   valueForm?.shippingAddress?.provinceOrCity?.id
+      // );
+      // form.current?.setFieldsValue(
+      //   ``,
+      //   valueForm?.shippingAddress?.district?.id
+      // );
+      // form.current?.setFieldsValue(
+      //   `shippingAddress.ward`,
+      //   valueForm?.shippingAddress?.ward?.id
+      // );
     } else {
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang?._id,
         Discount: valueForm?.Discount?._id,
-        DiaChi: valueForm?.DiaChi,
+        // DiaChi: valueForm?.DiaChi,
         email: valueForm?.email,
         SDT: valueForm?.SDT,
         items: [
@@ -808,8 +911,26 @@ function ListOrder(props) {
         MaTaiKhoan: null,
         TrangThai: 0,
         TinhTrangThanhToan: 0,
+        shipMoney: 0,
         KieuThanhToan: "cod",
+        shippingAddress: {
+          provinceOrCity: null,
+          district: null,
+          ward: null,
+        },
       });
+      // form.current?.setFieldsValue(
+      //   `shippingAddress.provinceOrCity`,
+      //   null
+      // );
+      // form.current?.setFieldsValue(
+      //   `shippingAddress.district`,
+      //   null
+      // );
+      // form.current?.setFieldsValue(
+      //   `shippingAddress.ward`,
+      //   null
+      // );
     }
   }, [valueForm]);
 
@@ -824,7 +945,7 @@ function ListOrder(props) {
     dispatch(actionProduct);
     const actionDis = getAllDis();
     dispatch(actionDis);
-    getCities()
+    getCities();
   }, []);
   const onChange = async (value) => {
     const res = await axios.get(
@@ -838,20 +959,71 @@ function ListOrder(props) {
       });
     }
   };
-
   const onChangeProduct = async (value) => {
     const action = getAll();
     dispatch(action);
   };
+  const calculateShip = async () => {
+    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    let items = form?.current?.getFieldValue("items");
+    items = items.filter(p => p.sanpham)
 
+    let fullItems = [];
+    let weight = 0;
+    const city = formatAddress(
+      cities.find((p) => p.id == shippingAddress.provinceOrCity)
+    );
+    const district = formatAddress(
+      districts.find((p) => p.id == shippingAddress.district)
+    );
+    console.log(items.length, items.map(p => p.sanpham))
+    if(items.length > 0) {
+     fullItems = await axios.get(`${process.env.REACT_APP_API_URL}sanphams?_id=${items.map(p => p.sanpham).join(',')}`)
+     weight = fullItems.data.result.data.reduce((a,b) => {
+      console.log((items.find(p => p.sanpham == b._id)?.soluong || 0))
+      return Number.parseFloat(a.KhoiLuong || 0) * (items.find(p => p.sanpham == a._id)?.soluong || 0) + Number.parseFloat(b.KhoiLuong || 0) * (items.find(p => p.sanpham == b._id)?.soluong || 0)
+    }, 0)
+    }
+   
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/calculateShip`,
+      {
+        params: {
+          province: city.name,
+          district: district.name,
+          weight: weight
+        },
+      }
+    );
+    form?.current?.setFieldsValue({
+      shipMoney: res.data.ship.fee.fee,
+    });
+  }
+  const sendGHTK = () => {
+
+  }
+  const seletedChange = (selected) => {
+    console.log(selected)
+  }
   return (
     <div>
+      {loadingProgress && <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignContent: 'center', textAlign: 'center', position: 'fixed', top: '0px' , left: '0px', zIndex: 1000, background: 'gray', opacity: 0.5}}>
+          <i class="fas fa-sync fa-spin"></i>
+          <p>Đang tính tiền ship</p>
+        </div>}
       <Button
         onClick={handleOpen}
         type="primary"
         style={{ margin: "10px 0px" }}
       >
         {t("order.add")}
+      </Button>
+      <Button
+        onClick={() => sendGHTK()}
+        type="primary"
+        style={{ margin: "10px 0px" }}
+      >
+       Đăng đơn hàng tiết kiệm
       </Button>
       <ExcelFile
         element={
@@ -946,16 +1118,28 @@ function ListOrder(props) {
               >
                 <Input />
               </Form.Item>
-              <Row style={{ width: "100%", justifyContent: "space-between" }} gutter="10">
+              <Row
+                style={{ width: "100%", justifyContent: "space-between" }}
+                gutter="10"
+              >
                 <Col span={8}>
-                  <Form.Item name="shippingAdress" label="Tỉnh">
+                  <Form.Item
+                    name={["shippingAddress", "provinceOrCity"]}
+                    label="Tỉnh"
+                    rules={[
+                      {
+                        required: true,
+                        message: t("order.pleaseSelectCustomer"),
+                      },
+                    ]}
+                  >
                     <Select
                       showSearch
                       placeholder="Chọn tỉnh thành"
                       onChange={onChangeCity}
-                      onSearch={getUser}
                       defaultActiveFirstOption={false}
                       filterOption={false}
+                      disabled={!isAdd}
                     >
                       {cities.map((city, index) => (
                         <Option key={index} value={city?.id}>
@@ -966,42 +1150,73 @@ function ListOrder(props) {
                   </Form.Item>
                 </Col>
                 <Col span={8}>
-                  <Form.Item name="Quận" label="Quận">
+                  <Form.Item
+                    name={["shippingAddress", "district"]}
+                    label="Quận"
+                    rules={[
+                      {
+                        required: true,
+                        message: t("order.pleaseSelectCustomer"),
+                      },
+                    ]}
+                  >
                     <Select
                       showSearch
                       placeholder={t && t("order.Selectauser")}
-                      onChange={onChange}
-                      onSearch={getUser}
+                      onChange={onChangeDistrict}
                       defaultActiveFirstOption={false}
                       filterOption={false}
+                      disabled={!isAdd}
                     >
-                      {discounts.map((discount, index) => (
-                        <Option key={index} value={discount?._id}>
-                          {discount?._id + " | " + discount?.code}
+                      {districts.map((district, index) => (
+                        <Option key={index} value={district?.id}>
+                          {district?.id + " | " + district?.name}
                         </Option>
                       ))}
                     </Select>
                   </Form.Item>
                 </Col>
                 <Col span={8}>
-                  <Form.Item name="Xã" label="Xã">
+                  <Form.Item
+                    name={["shippingAddress", "ward"]}
+                    label="Xã"
+                    rules={[
+                      {
+                        required: true,
+                        message: t("order.pleaseSelectCustomer"),
+                      },
+                    ]}
+                  >
                     <Select
                       showSearch
                       placeholder={t && t("order.Selectauser")}
-                      onChange={onChange}
-                      onSearch={getUser}
                       defaultActiveFirstOption={false}
+                      onChange={onChangeWard}
                       filterOption={false}
+                      disabled={!isAdd}
                     >
-                      {discounts.map((discount, index) => (
-                        <Option key={index} value={discount?._id}>
-                          {discount?._id + " | " + discount?.code}
+                      {wards.map((ward, index) => (
+                        <Option key={index} value={ward?.id}>
+                          {ward?.id + " | " + ward?.name}
                         </Option>
                       ))}
                     </Select>
                   </Form.Item>
                 </Col>
               </Row>
+              <Form.Item
+                label="Ship money"
+                name="shipMoney"
+                rules={[
+                  {
+                    required: true,
+                    message: t("order.enterYourPhoneNumber"),
+                  },
+                ]}
+                validateTrigger="onSubmit"
+              >
+                <Input disabled />
+              </Form.Item>
               <Form.Item
                 label="Email"
                 name="email"
@@ -1048,6 +1263,7 @@ function ListOrder(props) {
                     },
                   },
                 ]}
+                
               >
                 {(fields, { add, remove }, { errors }) => (
                   <>
@@ -1089,7 +1305,10 @@ function ListOrder(props) {
                                 <Select
                                   showSearch
                                   placeholder={t && t("order.Selectaproduct")}
-                                  onChange={onChangeProduct}
+                                  onChange={() => {
+                                    onChangeProduct();
+                                    calculateShip();
+                                  }}
                                   onSearch={getProductFilter}
                                   defaultActiveFirstOption={false}
                                   filterOption={false}
@@ -1128,6 +1347,7 @@ function ListOrder(props) {
                                   placeholder={t && t("order.Quantity")}
                                   style={{ width: "100%" }}
                                   min={1}
+                                  onChange={() => calculateShip()}
                                 />
                               </Form.Item>
                               <MinusCircleOutlined
@@ -1135,7 +1355,10 @@ function ListOrder(props) {
                                   marginTop: "10px",
                                   marginLeft: "10px",
                                 }}
-                                onClick={() => remove(field.name)}
+                                onClick={() => {
+                                  remove(field.name);
+                                  calculateShip()
+                                }}
                               />
                             </Col>
                           </Row>
@@ -1258,6 +1481,10 @@ function ListOrder(props) {
         pagination={{ ...pagination, total: total }}
         loading={loading}
         rowKey="_id"
+        rowSelection={{
+          type: "checkbox",
+          onChange: seletedChange
+        }}
       />
       <div style={{ display: "none" }}>
         <div class="invoice-box" ref={componentRef} style={{ width: "100%" }}>
