@@ -34,7 +34,7 @@ import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { removeOrder, saveOrder } from "api/orderApi";
+import { removeOrder, saveOrder, postOrderGHTK, deleteGHTK } from "api/orderApi";
 import ReactExport from "react-export-excel";
 import { useReactToPrint } from "react-to-print";
 import ReactToPrint from "react-to-print";
@@ -62,10 +62,11 @@ function ListOrder(props) {
   const [print, setPrint] = useState({});
   const dispatch = useDispatch();
   const [visible, setVisible] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(false);
   const [isAdd, setIsAdd] = useState(false);
   const { Panel } = Collapse;
   const [submit, setSubmit] = useState(false);
+  const [rowSelect, setRowSelect] = useState([]);
   const [valueForm, setValueForm] = useState({
     _id: 0,
     MaKhachHang: 0,
@@ -143,7 +144,7 @@ function ListOrder(props) {
               }, 500);
             }}
           >
-            Print
+            Print Bill
           </Button>
         </div>
       ),
@@ -322,6 +323,14 @@ function ListOrder(props) {
       ),
     },
     {
+      title: "Ship money",
+      dataIndex: "shipMoney",
+      key: "shipMoney",
+      render: (record) => (
+        <Tag color="processing">{formatCurrency(record)}</Tag>
+      ),
+    },
+    {
       title: t && t("order.total"),
       dataIndex: "TongTien",
       key: "TongTien",
@@ -398,18 +407,15 @@ function ListOrder(props) {
       render: (record) => <Tag color="green">{record}</Tag>,
     },
     {
-      title: 'Shipping address',
-      dataIndex: 'shippingAddress',
-      key: 'shippingAddress',
-      className: 'hidden'
-    }
+      title: "Shipping address",
+      dataIndex: "shippingAddress",
+      key: "shippingAddress",
+      className: "hidden",
+    },
   ];
   const handleOpen = async (formValue) => {
-  
     if (formValue._id) {
       setIsAdd(false);
-      console.log(formValue);
-    
       //   const getDataCustomer = await axios.get(`${process.env.REACT_APP_API_URL}khachhangs/${}`)
       setValueForm({
         _id: formValue?._id,
@@ -498,22 +504,30 @@ function ListOrder(props) {
         KieuThanhToan: "cod",
       });
     }
-    
+
     setVisible(true);
-    if(formValue._id) {
+
+    if (formValue._id) {
+      const cities = await axios.get(
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`
+      );
+      setCities(cities.data);
       const districts = await axios.get(
         `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.shippingAddress.district.pid}`
       );
-      setDistricts(districts.data)
+      setDistricts(districts.data);
       const wards = await axios.get(
         `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.shippingAddress.ward.pid}`
       );
-      setWards(wards.data)
+      setWards(wards.data);
     }
   };
 
   const handleClose = () => {
     setVisible(false);
+    setCities([]);
+    setDistricts([]);
+    setWards([]);
     setValueForm({
       _id: 0,
       MaKhachHang: 0,
@@ -565,7 +579,13 @@ function ListOrder(props) {
     const action = await removeOrder(id)
       .then((res) => message.success("Delete order success", 0.4))
       .catch((err) => {
-        message.success(err.response.data.message, 1);
+        message.error(err.response.data.message, 1);
+      });
+    const action2 = await deleteGHTK(id)
+      .then((res) => message.success("Delete order success from GHTK", 0.4))
+      .catch((err) => {
+        console.log(err)
+        message.error("Có lỗi khi xóa đơn hàng từ GHTK", 1);
       });
     handleReloadData();
     setPagination({
@@ -827,42 +847,11 @@ function ListOrder(props) {
     setWards(res.data);
   };
   const onChangeWard = async (value) => {
-    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
-    let items = form?.current?.getFieldValue("items");
-    items = items.filter(p => p.sanpham)
-    let fullItems = [];
-    let weight = 0;
-    const city = formatAddress(
-      cities.find((p) => p.id == shippingAddress.provinceOrCity)
-    );
-    const district = formatAddress(
-      districts.find((p) => p.id == shippingAddress.district)
-    );
-    if(items.length > 0) {
-      console.log("Hello")
-     fullItems = await axios.get(`${process.env.REACT_APP_API_URL}sanphams?_id=${items.map(p => p.sanpham).join(',')}`)
-     weight = fullItems.data.result.data.reduce((a,b) => {
-      return Number.parseFloat(a.KhoiLuong || 0) + Number.parseFloat(b.KhoiLuong || 0)
-    }, 0)
-    }
-    
-    const res = await axios.get(
-      `${process.env.REACT_APP_API_URL}ghtk/calculateShip`,
-      {
-        params: {
-          province: city.name,
-          district: district.name,
-          weight: weight
-        },
-      }
-    );
-    form?.current?.setFieldsValue({
-      shipMoney: res.data.ship.fee.fee,
-    });
+    calculateShip();
   };
   useEffect(() => {
     if (!isAdd) {
-      console.log(valueForm, "Hello")
+      console.log(valueForm, "Hello");
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang,
@@ -956,8 +945,25 @@ function ListOrder(props) {
         DiaChi: res.data?.DiaChi,
         email: res.data?.email,
         SDT: res.data?.SDT,
+        shippingAddress: {
+          provinceOrCity:  res.data?.shippingAddress?.provinceOrCity?.id,
+          district: res.data?.shippingAddress?.district?.id,
+          ward: res.data?.shippingAddress?.ward?.id,
+        },
       });
     }
+    const cities = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`
+    );
+    setCities(cities.data);
+    const districts = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${res.data.shippingAddress.district.pid}`
+    );
+    setDistricts(districts.data);
+    const wards = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${res.data.shippingAddress.ward.pid}`
+    );
+    setWards(wards.data);
   };
   const onChangeProduct = async (value) => {
     const action = getAll();
@@ -966,8 +972,8 @@ function ListOrder(props) {
   const calculateShip = async () => {
     const shippingAddress = form?.current?.getFieldValue("shippingAddress");
     let items = form?.current?.getFieldValue("items");
-    items = items.filter(p => p.sanpham)
-
+    items = items.filter((p) => p.sanpham && p.soluong);
+    console.log(shippingAddress);
     let fullItems = [];
     let weight = 0;
     const city = formatAddress(
@@ -976,41 +982,154 @@ function ListOrder(props) {
     const district = formatAddress(
       districts.find((p) => p.id == shippingAddress.district)
     );
-    console.log(items.length, items.map(p => p.sanpham))
-    if(items.length > 0) {
-     fullItems = await axios.get(`${process.env.REACT_APP_API_URL}sanphams?_id=${items.map(p => p.sanpham).join(',')}`)
-     weight = fullItems.data.result.data.reduce((a,b) => {
-      console.log((items.find(p => p.sanpham == b._id)?.soluong || 0))
-      return Number.parseFloat(a.KhoiLuong || 0) * (items.find(p => p.sanpham == a._id)?.soluong || 0) + Number.parseFloat(b.KhoiLuong || 0) * (items.find(p => p.sanpham == b._id)?.soluong || 0)
-    }, 0)
-    }
-   
-    const res = await axios.get(
-      `${process.env.REACT_APP_API_URL}ghtk/calculateShip`,
-      {
-        params: {
-          province: city.name,
-          district: district.name,
-          weight: weight
-        },
+    if (items.length > 0) {
+      fullItems = await axios.get(
+        `${process.env.REACT_APP_API_URL}sanphams?_id=${items
+          .map((p) => p.sanpham)
+          .join(",")}`
+      );
+      for (let i = 0; i < fullItems.data.result.data.length; i++) {
+        console.log(
+          fullItems.data.result.data[i].KhoiLuong,
+          items.find((p) => p.sanpham == fullItems.data.result.data[i]._id)
+            ?.soluong
+        );
+        weight +=
+          fullItems.data.result.data[i].KhoiLuong *
+          items.find((p) => p.sanpham == fullItems.data.result.data[i]._id)
+            ?.soluong;
       }
-    );
-    form?.current?.setFieldsValue({
-      shipMoney: res.data.ship.fee.fee,
-    });
-  }
-  const sendGHTK = () => {
-
-  }
+    }
+    if (
+      items.length &&
+      shippingAddress.provinceOrCity &&
+      shippingAddress.district &&
+      shippingAddress.ward
+    ) {
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_URL}ghtk/calculateShip`,
+        {
+          params: {
+            province: city.name,
+            district: district.name,
+            weight: weight,
+          },
+        }
+      );
+      form?.current?.setFieldsValue({
+        shipMoney: res.data?.ship?.fee?.fee,
+      });
+    }
+  };
+  const sendGHTK = async () => {
+    let flagStatus = "";
+    if (rowSelect.length > 0) {
+      let orders = await axios.get(
+        `${process.env.REACT_APP_API_URL}donhangs?_id=${rowSelect.join(",")}`
+      );
+      orders = orders.data.result.data;
+      for (let index = 0; index < orders.length; index++) {
+        if (
+          !orders[index]?.MaKhachHang?.TenKhachHang ||
+          !orders[index]?.SDT ||
+          !orders[index]?.DiaChi ||
+          !orders[index]?.shippingAddress?.provinceOrCity?.name ||
+          !orders[index]?.shippingAddress?.district?.name ||
+          !orders[index]?.shippingAddress?.ward?.name
+        ) {
+          console.log(orders[index], "order");
+          flagStatus = "warn";
+          message.error(
+            `Đơn hàng ${parseInt(index) + 1} thiếu thông tin người nhận`
+          );
+        } else if (!orders[index].shipMoney) {
+          flagStatus = "warn";
+          message.error(
+            `Đơn hàng ${parseInt(index) + 1} chưa tính được phí ship`
+          );
+        }
+      }
+      if (!flagStatus) {
+        for (const index in orders) {
+          // Get full data for order
+          const orderFullInfo = {
+            products: [],
+            order: {},
+          };
+          for (const item of orders[index].items) {
+            console.log(item.sanpham, item.sanpham.KhoiLuong);
+            orderFullInfo.products.push({
+              name: item.sanpham.TenSanPham,
+              weight: item.sanpham.KhoiLuong,
+              quantity: item.soluong,
+            });
+          }
+          orderFullInfo.order = {
+            id: orders[index]._id.toString(),
+            pick_money: orders[index].TongTien,
+            use_return_address: 0,
+            name: orders[index]?.MaKhachHang?.TenKhachHang,
+            tel: orders[index]?.SDT,
+            address: orders[index].DiaChi,
+            province: orders[index]?.shippingAddress?.provinceOrCity?.name,
+            district: orders[index]?.shippingAddress?.district?.name,
+            ward: orders[index]?.shippingAddress?.ward?.name,
+            hamlet: "Khác",
+            // is_freeship: orders[index].isFreeship,
+            value: orders[index].TongTien,
+            deliver_option: "none",
+          };
+          // Post order to GHTK
+          await postOrderGHTK(orderFullInfo)
+            .then((res) => {
+              if (res.success === false) {
+                message.error({
+                  duration: 5,
+                  content: `Đăng đơn hàng ${
+                    parseInt(index) + 1
+                  } không thành công. ${res.message}`,
+                });
+              } else {
+                message.success(
+                  `Đăng đơn hàng ${parseInt(index) + 1} thành công`
+                );
+              }
+            })
+            .catch((err) => {
+              message.error(`Đăng đơn hàng ${parseInt(index) + 1} xảy ra lỗi`);
+              console.log("Has an error while post order GHTK: ", err);
+            });
+        }
+      }
+    }
+  };
   const seletedChange = (selected) => {
-    console.log(selected)
-  }
+    setRowSelect(selected);
+  };
   return (
     <div>
-      {loadingProgress && <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignContent: 'center', textAlign: 'center', position: 'fixed', top: '0px' , left: '0px', zIndex: 1000, background: 'gray', opacity: 0.5}}>
+      {loadingProgress && (
+        <div
+          style={{
+            width: "100vw",
+            height: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignContent: "center",
+            textAlign: "center",
+            position: "fixed",
+            top: "0px",
+            left: "0px",
+            zIndex: 1000,
+            background: "gray",
+            opacity: 0.5,
+          }}
+        >
           <i class="fas fa-sync fa-spin"></i>
           <p>Đang tính tiền ship</p>
-        </div>}
+        </div>
+      )}
       <Button
         onClick={handleOpen}
         type="primary"
@@ -1021,10 +1140,11 @@ function ListOrder(props) {
       <Button
         onClick={() => sendGHTK()}
         type="primary"
-        style={{ margin: "10px 0px" }}
+        style={{ margin: "10px 0px 10px 10px" }}
       >
-       Đăng đơn hàng tiết kiệm
+        Đăng đơn hàng tiết kiệm
       </Button>
+ 
       <ExcelFile
         element={
           <Button type="primary" style={{ margin: "10px 10px" }}>
@@ -1134,7 +1254,6 @@ function ListOrder(props) {
                     ]}
                   >
                     <Select
-                      showSearch
                       placeholder="Chọn tỉnh thành"
                       onChange={onChangeCity}
                       defaultActiveFirstOption={false}
@@ -1161,7 +1280,6 @@ function ListOrder(props) {
                     ]}
                   >
                     <Select
-                      showSearch
                       placeholder={t && t("order.Selectauser")}
                       onChange={onChangeDistrict}
                       defaultActiveFirstOption={false}
@@ -1188,7 +1306,6 @@ function ListOrder(props) {
                     ]}
                   >
                     <Select
-                      showSearch
                       placeholder={t && t("order.Selectauser")}
                       defaultActiveFirstOption={false}
                       onChange={onChangeWard}
@@ -1263,7 +1380,6 @@ function ListOrder(props) {
                     },
                   },
                 ]}
-                
               >
                 {(fields, { add, remove }, { errors }) => (
                   <>
@@ -1357,7 +1473,7 @@ function ListOrder(props) {
                                 }}
                                 onClick={() => {
                                   remove(field.name);
-                                  calculateShip()
+                                  calculateShip();
                                 }}
                               />
                             </Col>
@@ -1483,7 +1599,7 @@ function ListOrder(props) {
         rowKey="_id"
         rowSelection={{
           type: "checkbox",
-          onChange: seletedChange
+          onChange: seletedChange,
         }}
       />
       <div style={{ display: "none" }}>

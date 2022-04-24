@@ -32,6 +32,7 @@ import moment from "moment";
 import { formatPhone } from "app/format";
 import { useTranslation } from "react-i18next";
 import { removeCustomer, saveCustomer } from "api/customer";
+import axios from "axios";
 ListCustomer.propTypes = {};
 function ListCustomer(props) {
   const { t } = useTranslation();
@@ -43,7 +44,9 @@ function ListCustomer(props) {
   const dispatch = useDispatch();
   const [visible, setVisible] = useState(false);
   const loading = useSelector((state) => state.customers.loading);
-
+  const [cities, setCities] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
   const [add, setAdd] = useState(false);
   const [value, setValue] = useState({
     _id: 0,
@@ -59,6 +62,26 @@ function ListCustomer(props) {
     DiaChi: "",
     email: "",
     SDT: "",
+    shippingAddress: {
+      provinceOrCity: {
+        id: null,
+        name: "",
+        pid: null,
+        code: null,
+      },
+      district: {
+        id: null,
+        name: "",
+        pid: null,
+        code: null,
+      },
+      ward: {
+        id: null,
+        name: "",
+        pid: null,
+        code: null,
+      },
+    },
     password: "",
     NgaySinh: null,
     TrangThai: true,
@@ -180,15 +203,22 @@ function ListCustomer(props) {
         </div>
       ),
     },
+    {
+      title: "Shipping address",
+      dataIndex: "shippingAddress",
+      key: "shippingAddress",
+      className: "hidden",
+    },
   ];
 
-  const handleOpen = (formValue) => {
+  const handleOpen = async (formValue) => {
     if (formValue._id) {
       setAdd(false);
       setValueForm({
         _id: formValue._id,
         TenKhachHang: formValue.TenKhachHang,
         DiaChi: formValue.DiaChi,
+        shippingAddress: formValue?.shippingAddress,
         email: formValue.email,
         SDT: formValue.SDT,
         password: formValue.password,
@@ -201,6 +231,11 @@ function ListCustomer(props) {
         _id: 0,
         TenKhachHang: "",
         DiaChi: "",
+        shippingAddress: {
+          provinceOrCity: null,
+          district: null,
+          ward: null,
+        },
         email: "",
         SDT: "",
         password: "",
@@ -211,6 +246,26 @@ function ListCustomer(props) {
         _id: 0,
         TenKhachHang: "",
         DiaChi: "",
+        shippingAddress: {
+          provinceOrCity: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+          district: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+          ward: {
+            id: null,
+            name: "",
+            pid: null,
+            code: null,
+          },
+        },
         email: "",
         SDT: "",
         password: "",
@@ -219,6 +274,20 @@ function ListCustomer(props) {
       });
     }
     setVisible(true);
+    if (formValue._id) {
+      const cities = await axios.get(
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`
+      );
+      setCities(cities.data);
+      const districts = await axios.get(
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue?.shippingAddress?.district?.pid}`
+      );
+      setDistricts(districts.data);
+      const wards = await axios.get(
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue?.shippingAddress?.ward?.pid}`
+      );
+      setWards(wards.data);
+    }
   };
 
   const handleClose = () => {
@@ -227,6 +296,26 @@ function ListCustomer(props) {
       _id: 0,
       TenKhachHang: "",
       DiaChi: "",
+      shippingAddress: {
+        provinceOrCity: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+        district: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+        ward: {
+          id: null,
+          name: "",
+          pid: null,
+          code: null,
+        },
+      },
       email: "",
       SDT: "",
       password: "",
@@ -301,10 +390,32 @@ function ListCustomer(props) {
       handleReloadData();
   
   };
-
+  const formatAddress = (data) => {
+    return {
+      id: data?.id ? data.id : null,
+      name: data?.name ? data.name : null,
+      pid: data?.pid ? data.pid : null,
+      code: data?.id ? data.id : null,
+    };
+  };
   const finishForm = async (data) => {
     setSubmit(true);
-
+    console.log(data)
+    const city = formatAddress(
+      cities.find((p) => p.id == data.shippingAddress.provinceOrCity)
+    );
+    const district = formatAddress(
+      districts.find((p) => p.id == data.shippingAddress.district)
+    );
+    const ward = formatAddress(
+      wards.find((p) => p.id == data.shippingAddress.ward)
+    );
+    data.shippingAddress = {
+      ...data.shippingAddress,
+      provinceOrCity: city,
+      district: district,
+      ward: ward,
+    };
       if (data.password.match(/^\s*$/)) {
         const action = await saveCustomer({
           ...data,
@@ -336,7 +447,33 @@ function ListCustomer(props) {
       setVisible(false);
    
   };
-
+  const getCities = async () => {
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/0`
+    );
+    console.log(res.data, " res");
+    setCities(res.data);
+  };
+  const onChangeCity = async (value) => {
+    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    form?.current?.setFieldsValue({
+      shippingAddress: { ...shippingAddress, district: null, ward: null },
+    });
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
+    );
+    setDistricts(res.data);
+  };
+  const onChangeDistrict = async (value) => {
+    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    form?.current?.setFieldsValue({
+      shippingAddress: { ...shippingAddress, ward: null },
+    });
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
+    );
+    setWards(res.data);
+  };
   useEffect(() => {
     if (!add) {
       form.current?.setFieldsValue({
@@ -348,16 +485,27 @@ function ListCustomer(props) {
         password: "",
         NgaySinh: formValue.NgaySinh && moment(formValue.NgaySinh),
         TrangThai: formValue.TrangThai,
+        shippingAddress: {
+          provinceOrCity: formValue?.shippingAddress?.provinceOrCity?.id,
+          district: formValue?.shippingAddress?.district?.id,
+          ward: formValue?.shippingAddress?.ward?.id,
+        },
       });
     } else {
       form.current?.setFieldsValue({
         _id: formValue?._id,
+        shippingAddress: {
+          provinceOrCity: null,
+          district: null,
+          ward: null,
+        },
       });
     }
   }, [formValue]);
 
   useEffect(() => {
     handleReloadData();
+    getCities();
   }, []);
 
   return (
@@ -420,6 +568,85 @@ function ListCustomer(props) {
               >
                 <Input />
               </Form.Item>
+              <Row
+                style={{ width: "100%", justifyContent: "space-between" }}
+                gutter="10"
+              >
+                <Col span={8}>
+                  <Form.Item
+                    name={["shippingAddress", "provinceOrCity"]}
+                    label="Tỉnh"
+                    rules={[
+                      {
+                        required: true,
+                        message: t("order.pleaseSelectCustomer"),
+                      },
+                    ]}
+                  >
+                    <Select
+                      placeholder="Chọn tỉnh thành"
+                      onChange={onChangeCity}
+                      defaultActiveFirstOption={false}
+                      filterOption={false}
+                    >
+                      {cities.map((city, index) => (
+                        <Option key={index} value={city?.id}>
+                          {city?.id + " | " + city?.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    name={["shippingAddress", "district"]}
+                    label="Quận"
+                    rules={[
+                      {
+                        required: true,
+                        message: t("order.pleaseSelectCustomer"),
+                      },
+                    ]}
+                  >
+                    <Select
+                      placeholder={t && t("order.Selectauser")}
+                      onChange={onChangeDistrict}
+                      defaultActiveFirstOption={false}
+                      filterOption={false}
+                    >
+                      {districts.map((district, index) => (
+                        <Option key={index} value={district?.id}>
+                          {district?.id + " | " + district?.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    name={["shippingAddress", "ward"]}
+                    label="Xã"
+                    rules={[
+                      {
+                        required: true,
+                        message: t("order.pleaseSelectCustomer"),
+                      },
+                    ]}
+                  >
+                    <Select
+                      placeholder={t && t("order.Selectauser")}
+                      defaultActiveFirstOption={false}
+                      filterOption={false}
+                    >
+                      {wards.map((ward, index) => (
+                        <Option key={index} value={ward?.id}>
+                          {ward?.id + " | " + ward?.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
               <Form.Item
                 label={t && t("customer.email")}
                 name="email"

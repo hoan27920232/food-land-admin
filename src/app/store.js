@@ -7,7 +7,7 @@ import loginSlice from 'features/Login/loginSlice'
 import userSlice from 'features/User/userSlice'
 import customerSlice from 'features/KhachHang/customerSlice'
 import categoryBlogSlice from 'features/CategoryBlog/categoryBlog'
-
+import discountSlice from 'features/Discount/discountSlice'
 import orderSlice from 'features/DonHang/orderSlice'
 const rootReducer = {
     photos: blogSlice,
@@ -19,7 +19,8 @@ const rootReducer = {
     categoryBlogs: categoryBlogSlice,
     blogs: blogSlice,
     customers: customerSlice,
-    orders: orderSlice
+    orders: orderSlice,
+    discounts: discountSlice
 }
 
 const store = configureStore({

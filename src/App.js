@@ -20,7 +20,7 @@ function App() {
   };
   const dispatch = useDispatch();
   useMetaTags({
-    title: "Food Land Admin"
+    title: "Tay Bac Admin"
   })
 
   const user = useSelector((state) => state.me.user);
