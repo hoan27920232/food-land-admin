@@ -575,16 +575,16 @@ function ListCustomer(props) {
                 <Col span={8}>
                   <Form.Item
                     name={["shippingAddress", "provinceOrCity"]}
-                    label="Tỉnh"
+                    label={t && t("shippingAddress.city")}
                     rules={[
                       {
                         required: true,
-                        message: t("order.pleaseSelectCustomer"),
+                        message: t("shippingAddress.pleaseSelectCity"),
                       },
                     ]}
                   >
                     <Select
-                      placeholder="Chọn tỉnh thành"
+                      placeholder={t && t("shippingAddress.selectCity")}
                       onChange={onChangeCity}
                       defaultActiveFirstOption={false}
                       filterOption={false}
@@ -600,16 +600,17 @@ function ListCustomer(props) {
                 <Col span={8}>
                   <Form.Item
                     name={["shippingAddress", "district"]}
-                    label="Quận"
+                    label={t && t("shippingAddress.district")}
+
                     rules={[
                       {
                         required: true,
-                        message: t("order.pleaseSelectCustomer"),
+                        message: t("shippingAddress.pleaseSelectDistrict"),
                       },
                     ]}
                   >
                     <Select
-                      placeholder={t && t("order.Selectauser")}
+                      placeholder={t && t("shippingAddress.selectDistrict")}
                       onChange={onChangeDistrict}
                       defaultActiveFirstOption={false}
                       filterOption={false}
@@ -625,16 +626,17 @@ function ListCustomer(props) {
                 <Col span={8}>
                   <Form.Item
                     name={["shippingAddress", "ward"]}
-                    label="Xã"
+                    label={t && t("shippingAddress.ward")}
+
                     rules={[
                       {
                         required: true,
-                        message: t("order.pleaseSelectCustomer"),
+                        message: t("shippingAddress.pleaseSelectWard"),
                       },
                     ]}
                   >
                     <Select
-                      placeholder={t && t("order.Selectauser")}
+                      placeholder={t && t("shippingAddress.selectWard")}
                       defaultActiveFirstOption={false}
                       filterOption={false}
                     >

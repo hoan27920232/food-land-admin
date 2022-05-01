@@ -74,7 +74,9 @@
         "status": "Trạng thái đơn",
         "statusPayment": "Trạng thái thanh toán",
         "paymentMethod": "Phương thức thanh toán",
-        "incomple": "Chưa hoàn thành",
+        "createdOrder": "Đã tạo",
+        "ghtk": "Đã lên đơn GHTK",
+        "shipping": "Shipping",
         "complete": "Hoàn thành",
         "unpaid": "Chưa thanh toán",
         "paid": "Đã thanh toán",
@@ -100,6 +102,19 @@
         "Pleaseselectorderstatus": "Vui lòng lựa chọn trạng thái đơn hàng!",
         "Pleaseselectpaymentstatus": "Vui lòng lựa chọn trạng thái thanh toán!",
         "Pleaseselectpaymentmethod": "Vui lòng lựa chọn phương thức thanh toán!"
+    },
+    "shippingAddress": {
+        "city": "Thành phố",
+        "district": "Quận/huyện",
+        "ward": "Xã",
+        "pleaseSelectCity": "Vui lòng chọn thành phố",
+        "pleaseSelectDistrict": "Vui lòng chọn quận/huyện",
+
+        "pleaseSelectWard": "Vui lòng chọn xã",
+        "selectCity": "Chọn thành phố",
+        "selectDistrict": "Chọn quận/huyện",
+        "selectWard": "Chọn xã"
+
     },
     "blog": {
         "add": "Thêm mới Blog",

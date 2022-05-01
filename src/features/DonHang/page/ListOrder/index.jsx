@@ -52,7 +52,7 @@ function ListOrder(props) {
   const total = useSelector((state) => state.orders.totalCount);
   const loading = useSelector((state) => state.orders.loading);
   const customers = useSelector((state) => state.customers.customers);
-  const discounts = useSelector((state) => state.discounts.discounts);
+  const discounts = useSelector((state) => state.discounts.discounts.filter(p => p.active && Date.parse(p.endDate) > Date.now() && Date.parse(p.startDate) < Date.now()));
   const users = useSelector((state) => state.users.users);
   const products = useSelector((state) => state.products.products);
   const success = useSelector((state) => state.orders.success);
@@ -382,10 +382,30 @@ function ListOrder(props) {
       title: t && t("order.status"),
       dataIndex: "TrangThai",
       key: "TrangThai",
+      filters: [
+        {
+          text: 'Created',
+          value: '0',
+        },
+        {
+          text: 'Post GHTK',
+          value: '1',
+        },
+        {
+          text: 'Shipping',
+          value: '2',
+        },
+        {
+          text: 'Finished',
+          value: '3',
+        },
+      ],
       render: (record) => (
         <>
-          {record == 0 && <Tag color="orange">{t && t("order.incomple")}</Tag>}
-          {record == 1 && <Tag color="cyan">{t && t("order.complete")}</Tag>}
+          {record == 0 && <Tag color="orange">{t && t("order.createdOrder")}</Tag>}
+          {record == 1 && <Tag color="orange">{t && t("order.ghtk")}</Tag>}
+          {record == 2 && <Tag color="orange">{t && t("order.shipping")}</Tag>}
+          {record == 3 && <Tag color="cyan">{t && t("order.complete")}</Tag>}
         </>
       ),
     },
@@ -609,12 +629,14 @@ function ListOrder(props) {
           pageSize: pagination.pageSize,
           sort: sort,
           keywords: filters?._id[0],
+          TrangThai: filters?.TrangThai && filters?.TrangThai?.length && filters.TrangThai.join(',') || undefined
         });
       } else {
         action = getAllOrd({
           pageNo: pagination.current,
           pageSize: pagination.pageSize,
           sort: sort,
+          TrangThai: filters?.TrangThai && filters?.TrangThai?.length && filters.TrangThai.join(',') || undefined
         });
       }
     } else {
@@ -623,15 +645,17 @@ function ListOrder(props) {
           pageNo: pagination.current,
           pageSize: pagination.pageSize,
           keywords: filters?._id[0],
+          TrangThai: filters?.TrangThai && filters?.TrangThai?.length && filters.TrangThai.join(',') || undefined
         });
       } else {
         action = getAllOrd({
           pageNo: pagination.current,
           pageSize: pagination.pageSize,
+          TrangThai: filters?.TrangThai && filters?.TrangThai?.length && filters.TrangThai.join(',') || undefined
         });
       }
     }
-    dispatch(action);
+    dispatch(action)
     setPagination({
       ...pagination,
       current: pagination.current,
@@ -692,7 +716,7 @@ function ListOrder(props) {
       }));
     }
 
-    if (data.TrangThai == 1 && !isAdd) {
+    if (data.TrangThai == 3 && !isAdd) {
       const action = await saveOrder({
         ...data,
         items: arrayItems,
@@ -707,7 +731,11 @@ function ListOrder(props) {
           message.error(err.response?.data?.message, 1);
           setSubmit(false);
         });
-    } else {
+    }
+    // else if(data.TrangThai !== 3 && !isAdd) {
+
+    // }
+    else {
       const action = await saveOrder({
         ...data,
         items: arrayItems,
@@ -989,11 +1017,6 @@ function ListOrder(props) {
           .join(",")}`
       );
       for (let i = 0; i < fullItems.data.result.data.length; i++) {
-        console.log(
-          fullItems.data.result.data[i].KhoiLuong,
-          items.find((p) => p.sanpham == fullItems.data.result.data[i]._id)
-            ?.soluong
-        );
         weight +=
           fullItems.data.result.data[i].KhoiLuong *
           items.find((p) => p.sanpham == fullItems.data.result.data[i]._id)
@@ -1108,6 +1131,7 @@ function ListOrder(props) {
   };
   return (
     <div>
+      {/* <button onClick={() => console.log(total)}>Click</button> */}
       {loadingProgress && (
         <div
           style={{
@@ -1145,7 +1169,7 @@ function ListOrder(props) {
         Đăng đơn hàng tiết kiệm
       </Button>
  
-      <ExcelFile
+      {/* <ExcelFile
         element={
           <Button type="primary" style={{ margin: "10px 10px" }}>
             Export excel
@@ -1170,7 +1194,7 @@ function ListOrder(props) {
             style={{ alignment: { wrapText: true } }}
           />
         </ExcelSheet>
-      </ExcelFile>
+      </ExcelFile> */}
       <Drawer
         visible={visible}
         placement="right"
@@ -1245,16 +1269,16 @@ function ListOrder(props) {
                 <Col span={8}>
                   <Form.Item
                     name={["shippingAddress", "provinceOrCity"]}
-                    label="Tỉnh"
+                    label={t && t("shippingAddress.city")}
                     rules={[
                       {
                         required: true,
-                        message: t("order.pleaseSelectCustomer"),
+                        message: t("shippingAddress.pleaseSelectCity"),
                       },
                     ]}
                   >
                     <Select
-                      placeholder="Chọn tỉnh thành"
+                      placeholder={t && t("shippingAddress.selectCity")}
                       onChange={onChangeCity}
                       defaultActiveFirstOption={false}
                       filterOption={false}
@@ -1271,16 +1295,16 @@ function ListOrder(props) {
                 <Col span={8}>
                   <Form.Item
                     name={["shippingAddress", "district"]}
-                    label="Quận"
+                    label={t && t("shippingAddress.district")}
                     rules={[
                       {
                         required: true,
-                        message: t("order.pleaseSelectCustomer"),
+                        message: t("shippingAddress.pleaseSelectDistrict"),
                       },
                     ]}
                   >
                     <Select
-                      placeholder={t && t("order.Selectauser")}
+                      placeholder={t && t("shippingAddress.selectDistrict")}
                       onChange={onChangeDistrict}
                       defaultActiveFirstOption={false}
                       filterOption={false}
@@ -1297,16 +1321,16 @@ function ListOrder(props) {
                 <Col span={8}>
                   <Form.Item
                     name={["shippingAddress", "ward"]}
-                    label="Xã"
+                    label={t && t("shippingAddress.ward")}
                     rules={[
                       {
                         required: true,
-                        message: t("order.pleaseSelectCustomer"),
+                        message: t("shippingAddress.pleaseSelectWard"),
                       },
                     ]}
                   >
                     <Select
-                      placeholder={t && t("order.Selectauser")}
+                      placeholder={t && t("shippingAddress.selectWard")}
                       defaultActiveFirstOption={false}
                       onChange={onChangeWard}
                       filterOption={false}
@@ -1544,8 +1568,10 @@ function ListOrder(props) {
                   showSearch
                   placeholder={t && t("order.Selectaorderstatus")}
                 >
-                  <Option value={0}>{t && t("order.incomple")}</Option>
-                  <Option value={1}>{t && t("order.complete")}</Option>
+                  <Option value={0}>{t && t("order.createdOrder")}</Option>
+                  <Option value={1}>{t && t("order.ghtk")}</Option>
+                  <Option value={2}>{t && t("order.shipping")}</Option>
+                  <Option value={3}>{t && t("order.complete")}</Option>
                 </Select>
               </Form.Item>
               <Form.Item

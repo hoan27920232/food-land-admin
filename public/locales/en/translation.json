@@ -76,7 +76,9 @@
         "status": "Status",
         "statusPayment": "Status payment",
         "paymentMethod": "Payment method",
-        "incomple": "Incomplete",
+        "createdOrder": "Created",
+        "ghtk": "Posted GHTK",
+        "shipping": "Shipping",
         "complete": "Complete",
         "unpaid": "Unpaid",
         "paid": "Paid",
@@ -102,6 +104,18 @@
         "Pleaseselectorderstatus": "Please select order status!",
         "Pleaseselectpaymentstatus": "Please select payment status!",
         "Pleaseselectpaymentmethod": "Please select payment method!"
+    },
+    "shippingAddress": {
+        "city": "City",
+        "district": "District",
+        "ward": "Ward",
+        "pleaseSelectCity": "Please select city",
+        "pleaseSelectDistrict": "Please select district",
+
+        "pleaseSelectWard": "Please select ward",
+        "selectCity": "Select city",
+        "selectDistrict": "Select district",
+        "selectWard": "Select ward"
     },
     "blog": {
         "add": "Add Blog",
