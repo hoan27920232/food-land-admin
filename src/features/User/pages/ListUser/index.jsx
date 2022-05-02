@@ -186,6 +186,7 @@ function ListUser(props) {
       title: t && t("button.action"),
       dataIndex: "",
       key: "x",
+      className: `${user?.roles == 1 ? "hidden" : ""}`,
       render: (record) => (
         <div>
           {user._id != record._id && (

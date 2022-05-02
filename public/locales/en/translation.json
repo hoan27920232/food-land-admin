@@ -11,7 +11,7 @@
         "users": "Users",
         "settings": "Settings",
         "welcome": "Welcome",
-        "me": "My information",
+        "me": "Me",
         "discounts": "Discounts"
 
     },
@@ -103,7 +103,8 @@
         "Pleaseinputquantityproduct": "Please input quantity product",
         "Pleaseselectorderstatus": "Please select order status!",
         "Pleaseselectpaymentstatus": "Please select payment status!",
-        "Pleaseselectpaymentmethod": "Please select payment method!"
+        "Pleaseselectpaymentmethod": "Please select payment method!",
+        "note": "Note"
     },
     "shippingAddress": {
         "city": "City",

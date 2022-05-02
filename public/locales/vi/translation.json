@@ -101,7 +101,9 @@
         "Pleaseinputquantityproduct": "Vui lòng nhập vào số lượng sản phẩm",
         "Pleaseselectorderstatus": "Vui lòng lựa chọn trạng thái đơn hàng!",
         "Pleaseselectpaymentstatus": "Vui lòng lựa chọn trạng thái thanh toán!",
-        "Pleaseselectpaymentmethod": "Vui lòng lựa chọn phương thức thanh toán!"
+        "Pleaseselectpaymentmethod": "Vui lòng lựa chọn phương thức thanh toán!",
+        "note": "Note"
+
     },
     "shippingAddress": {
         "city": "Thành phố",

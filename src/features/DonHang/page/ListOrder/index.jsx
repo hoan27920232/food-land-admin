@@ -105,6 +105,7 @@ function ListOrder(props) {
     TrangThai: 0,
     TinhTrangThanhToan: 0,
     KieuThanhToan: "cod",
+    note: ''
   });
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -427,11 +428,17 @@ function ListOrder(props) {
       render: (record) => <Tag color="green">{record}</Tag>,
     },
     {
+      title: "Note",
+      dataIndex: "note",
+      key: "note",
+    },
+    {
       title: "Shipping address",
       dataIndex: "shippingAddress",
       key: "shippingAddress",
       className: "hidden",
     },
+    
   ];
   const handleOpen = async (formValue) => {
     if (formValue._id) {
@@ -788,6 +795,7 @@ function ListOrder(props) {
       TrangThai: 0,
       TinhTrangThanhToan: 0,
       KieuThanhToan: "cod",
+      note: ''
     });
     handleReloadData();
     const actionProduct = getAll();
@@ -898,6 +906,8 @@ function ListOrder(props) {
           district: valueForm?.shippingAddress?.district?.id,
           ward: valueForm?.shippingAddress?.ward?.id,
         },
+        note: valueForm?.note,
+
       });
       // form.current?.setFieldsValue(
       //   `shippingAddress.provinceOrCity`,
@@ -935,6 +945,7 @@ function ListOrder(props) {
           district: null,
           ward: null,
         },
+        note: ''
       });
       // form.current?.setFieldsValue(
       //   `shippingAddress.provinceOrCity`,
@@ -1101,6 +1112,7 @@ function ListOrder(props) {
             // is_freeship: orders[index].isFreeship,
             value: orders[index].TongTien,
             deliver_option: "none",
+            note: orders[index]?.note
           };
           // Post order to GHTK
           await postOrderGHTK(orderFullInfo)
@@ -1536,6 +1548,9 @@ function ListOrder(props) {
                     </Option>
                   ))}
                 </Select>
+              </Form.Item>
+              <Form.Item name="note" label="Note">
+                <TextArea />
               </Form.Item>
               <Form.Item name="MaTaiKhoan" label={t && t("order.selectUsr")}>
                 <Select

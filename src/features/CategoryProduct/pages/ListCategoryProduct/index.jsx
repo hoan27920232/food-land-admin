@@ -236,7 +236,7 @@ function ListCategoryProduct(props) {
         visible={visible}
         placement="right"
         title="Category form"
-        width={window.innerWidth > 900 ? "50%" : "100%"}
+        width={window.innerWidth > 900 ? "25%" : "100%"}
         onClose={handleClose}
         footer={
           <Space style={{ float: "right" }}>
