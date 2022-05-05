@@ -74,6 +74,7 @@
         "address": "Address",
         "created": "Created At",
         "status": "Status",
+        "cancel": "Cancel",
         "statusPayment": "Status payment",
         "paymentMethod": "Payment method",
         "createdOrder": "Created",

@@ -75,6 +75,8 @@
         "statusPayment": "Trạng thái thanh toán",
         "paymentMethod": "Phương thức thanh toán",
         "createdOrder": "Đã tạo",
+        "cancel": "Hủy đơn",
+
         "ghtk": "Đã lên đơn GHTK",
         "shipping": "Shipping",
         "complete": "Hoàn thành",

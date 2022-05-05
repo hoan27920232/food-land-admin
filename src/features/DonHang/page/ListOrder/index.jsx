@@ -385,6 +385,10 @@ function ListOrder(props) {
       key: "TrangThai",
       filters: [
         {
+          text: 'Cancel',
+          value: '-1',
+        },
+        {
           text: 'Created',
           value: '0',
         },
@@ -403,10 +407,12 @@ function ListOrder(props) {
       ],
       render: (record) => (
         <>
+
           {record == 0 && <Tag color="orange">{t && t("order.createdOrder")}</Tag>}
           {record == 1 && <Tag color="orange">{t && t("order.ghtk")}</Tag>}
           {record == 2 && <Tag color="orange">{t && t("order.shipping")}</Tag>}
           {record == 3 && <Tag color="cyan">{t && t("order.complete")}</Tag>}
+          {record == -1 && <Tag color="red">{t && t("order.cancel")}</Tag>}
         </>
       ),
     },
@@ -1587,6 +1593,7 @@ function ListOrder(props) {
                   <Option value={1}>{t && t("order.ghtk")}</Option>
                   <Option value={2}>{t && t("order.shipping")}</Option>
                   <Option value={3}>{t && t("order.complete")}</Option>
+                  <Option value={-1}>{t && t("order.cancel")}</Option>
                 </Select>
               </Form.Item>
               <Form.Item
