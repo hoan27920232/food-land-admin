@@ -217,7 +217,7 @@ function LayoutAdmin(props) {
             </div>
           </Content>
           <Footer style={{ textAlign: "center" }}>
-            Food  Land Management 2022
+            Tay Bac Management 2022
           </Footer>
         </Layout>
       </Layout>
