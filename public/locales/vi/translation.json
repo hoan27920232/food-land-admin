@@ -62,6 +62,8 @@
     "order": {
         "add": "Thêm đơn hàng",
         "items": "Các sản phẩm",
+        "orderGHTK": "Đăng đơn hàng tiết kiệm",
+
         "customer": "Khách hàng",
         "selectCus": "Chọn khách hàng",
         "user": "Nhân viên",
@@ -76,7 +78,6 @@
         "paymentMethod": "Phương thức thanh toán",
         "createdOrder": "Đã tạo",
         "cancel": "Hủy đơn",
-
         "ghtk": "Đã lên đơn GHTK",
         "shipping": "Shipping",
         "complete": "Hoàn thành",

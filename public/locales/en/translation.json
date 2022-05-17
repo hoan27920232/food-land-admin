@@ -62,6 +62,7 @@
     },
     "order": {
         "add": "Add order",
+        "orderGHTK": "Post GHTK",
         "items": "Items",
         "customer": "Customer",
         "selectCus": "Select customer",

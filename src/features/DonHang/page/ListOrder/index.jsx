@@ -25,6 +25,8 @@ import {
 } from "antd";
 import { formatCurrency, formatPhone } from "app/format";
 import { deleteOrd, getAllOrd, saveOrd } from "features/DonHang/orderSlice";
+import logo from "../../../../assets/images/logo.png";
+
 import { getAllCus } from "features/KhachHang/customerSlice";
 import { getAllDis } from "features/Discount/discountSlice";
 import { getAll } from "features/Product/productSlice";
@@ -1106,7 +1108,7 @@ function ListOrder(props) {
           }
           orderFullInfo.order = {
             id: orders[index]._id.toString(),
-            pick_money: orders[index].TongTien,
+            pick_money: orders[index].TinhTrangThanhToan == 1 ? 0 : orders[index].TongTien,
             use_return_address: 0,
             name: orders[index]?.MaKhachHang?.TenKhachHang,
             tel: orders[index]?.SDT,
@@ -1115,7 +1117,7 @@ function ListOrder(props) {
             district: orders[index]?.shippingAddress?.district?.name,
             ward: orders[index]?.shippingAddress?.ward?.name,
             hamlet: "Khác",
-            // is_freeship: orders[index].isFreeship,
+            is_freeship: orders[index].TinhTrangThanhToan == 1 ? 1 : 0,
             value: orders[index].TongTien,
             deliver_option: "none",
             note: orders[index]?.note
@@ -1184,7 +1186,7 @@ function ListOrder(props) {
         type="primary"
         style={{ margin: "10px 0px 10px 10px" }}
       >
-        Đăng đơn hàng tiết kiệm
+        {t("order.orderGHTK")}
       </Button>
  
       {/* <ExcelFile
@@ -1659,7 +1661,7 @@ function ListOrder(props) {
                   <tr>
                     <td class="title">
                       <img
-                        src="https://opencart.mahardhi.com/MT04/vegelite/image/catalog/logo.png"
+                        src={logo}
                         style={{ width: "auto", objectFit: "fill" }}
                       />
                     </td>
@@ -1712,7 +1714,7 @@ function ListOrder(props) {
 
             <tr class="details">
               <td style={{ textTransform: "uppercase" }}>
-                {print?.KieuThanhToan}
+                {print?.KieuThanhToan} - ShipMoney: {print?.shipMoney}<span style={{ textTransform: "lowercase" }}>đ</span>
               </td>
               <td></td>
               <td></td>
