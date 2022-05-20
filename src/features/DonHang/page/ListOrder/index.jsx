@@ -463,6 +463,7 @@ function ListOrder(props) {
         SDT: formValue?.MaKhachHang?.SDT,
         Discount: formValue?.Discount?._id,
         shipMoney: formValue?.shipMoney,
+        note: formValue?.note,
         items: formValue?.items.map((p) => ({
           sanpham: p?.sanpham?._id,
           soluong: p?.soluong,
@@ -484,6 +485,7 @@ function ListOrder(props) {
         email: "",
         SDT: "",
         shipMoney: 0,
+        note: "",
         items: [
           {
             sanpham: null,
@@ -509,6 +511,7 @@ function ListOrder(props) {
         shipMoney: 0,
         email: "",
         SDT: "",
+        note: "",
         DiaChi: {
           provinceOrCity: {
             id: null,
@@ -905,6 +908,7 @@ function ListOrder(props) {
         email: valueForm?.email,
         SDT: valueForm?.SDT,
         shipMoney: valueForm?.shipMoney,
+        note: valueForm?.note,
         MaTaiKhoan: valueForm?.MaTaiKhoan,
         TrangThai: valueForm?.TrangThai,
         TinhTrangThanhToan: valueForm?.TinhTrangThanhToan,
@@ -947,6 +951,7 @@ function ListOrder(props) {
         ],
         MaTaiKhoan: null,
         TrangThai: 0,
+        note: "",
         TinhTrangThanhToan: 0,
         shipMoney: 0,
         KieuThanhToan: "cod",
