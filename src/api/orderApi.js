@@ -4,6 +4,10 @@ export const getAllOrder = (params) => {
   const url = "/donhangs";
   return axiosClient.get(url, { params });
 };
+export const getExportOrder = () => {
+  const url = "/donhangs/exportexcel";
+  return axiosClient.get(url);
+};
 export const getFilterOrder = (params) => {
   const url = "/donhangs/filter";
   return axiosClient.get(url, { params });

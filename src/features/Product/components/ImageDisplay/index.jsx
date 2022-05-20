@@ -42,7 +42,6 @@ function ImageDisplay(props) {
                      style={{ color: "red" }}
                    />
                  }
-                 
                >
                  <img
                    src={`${image?.source}`}
@@ -54,7 +53,7 @@ function ImageDisplay(props) {
            );
          }
          return (
-           <Col span={6} key={index}>
+           <Col span={6} key={index} style={{ marginTop: '10px' }}>
              <Badge
                count={
                  <StopOutlined
@@ -67,7 +66,7 @@ function ImageDisplay(props) {
                <img
                  src={`${image?.source}`}
                  alt="Small"
-                 style={{ width: "100%" }}
+                 style={{ width: "80px", border: '1px solid black' }}
                />
              </Badge>
            </Col>

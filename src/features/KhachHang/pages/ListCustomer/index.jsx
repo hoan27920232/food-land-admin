@@ -59,10 +59,9 @@ function ListCustomer(props) {
   const [formValue, setValueForm] = useState({
     _id: 0,
     TenKhachHang: "",
-    DiaChi: "",
     email: "",
     SDT: "",
-    shippingAddress: {
+    DiaChi: {
       provinceOrCity: {
         id: null,
         name: "",
@@ -81,6 +80,7 @@ function ListCustomer(props) {
         pid: null,
         code: null,
       },
+      DiaChiDetail: "",
     },
     password: "",
     NgaySinh: null,
@@ -153,6 +153,8 @@ function ListCustomer(props) {
       title: t && t("customer.address"),
       dataIndex: "DiaChi",
       key: "DiaChi",
+      render: (record) => <p>{record.DiaChiDetail}</p>
+      // className: "hidden",
     },
     {
       title: t && t("customer.email"),
@@ -169,7 +171,7 @@ function ListCustomer(props) {
       title: t && t("customer.DOB"),
       dataIndex: "NgaySinh",
       key: "NgaySinh",
-      render: (record) => <div>{moment(record).format("DD/MM/YYYY")}</div>,
+      render: (record) => <div>{record && moment(record).format("DD/MM/YYYY")}</div>,
     },
     {
       title: t && t("customer.status"),
@@ -203,12 +205,7 @@ function ListCustomer(props) {
         </div>
       ),
     },
-    {
-      title: "Shipping address",
-      dataIndex: "shippingAddress",
-      key: "shippingAddress",
-      className: "hidden",
-    },
+  
   ];
 
   const handleOpen = async (formValue) => {
@@ -217,8 +214,7 @@ function ListCustomer(props) {
       setValueForm({
         _id: formValue._id,
         TenKhachHang: formValue.TenKhachHang,
-        DiaChi: formValue.DiaChi,
-        shippingAddress: formValue?.shippingAddress,
+        DiaChi: formValue?.DiaChi,
         email: formValue.email,
         SDT: formValue.SDT,
         password: formValue.password,
@@ -230,11 +226,11 @@ function ListCustomer(props) {
       form.current?.setFieldsValue({
         _id: 0,
         TenKhachHang: "",
-        DiaChi: "",
-        shippingAddress: {
+        DiaChi: {
           provinceOrCity: null,
           district: null,
           ward: null,
+          DiaChiDetail: "",
         },
         email: "",
         SDT: "",
@@ -245,8 +241,7 @@ function ListCustomer(props) {
       setValueForm({
         _id: 0,
         TenKhachHang: "",
-        DiaChi: "",
-        shippingAddress: {
+        DiaChi: {
           provinceOrCity: {
             id: null,
             name: "",
@@ -265,6 +260,8 @@ function ListCustomer(props) {
             pid: null,
             code: null,
           },
+          DiaChiDetail: "",
+
         },
         email: "",
         SDT: "",
@@ -280,11 +277,11 @@ function ListCustomer(props) {
       );
       setCities(cities.data);
       const districts = await axios.get(
-        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue?.shippingAddress?.district?.pid}`
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue?.DiaChi?.district?.pid}`
       );
       setDistricts(districts.data);
       const wards = await axios.get(
-        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue?.shippingAddress?.ward?.pid}`
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue?.DiaChi?.ward?.pid}`
       );
       setWards(wards.data);
     }
@@ -295,8 +292,7 @@ function ListCustomer(props) {
     setValueForm({
       _id: 0,
       TenKhachHang: "",
-      DiaChi: "",
-      shippingAddress: {
+      DiaChi: {
         provinceOrCity: {
           id: null,
           name: "",
@@ -315,6 +311,8 @@ function ListCustomer(props) {
           pid: null,
           code: null,
         },
+        DiaChiDetail: "",
+
       },
       email: "",
       SDT: "",
@@ -402,16 +400,16 @@ function ListCustomer(props) {
     setSubmit(true);
     console.log(data)
     const city = formatAddress(
-      cities.find((p) => p.id == data.shippingAddress.provinceOrCity)
+      cities.find((p) => p.id == data.DiaChi.provinceOrCity)
     );
     const district = formatAddress(
-      districts.find((p) => p.id == data.shippingAddress.district)
+      districts.find((p) => p.id == data.DiaChi.district)
     );
     const ward = formatAddress(
-      wards.find((p) => p.id == data.shippingAddress.ward)
+      wards.find((p) => p.id == data.DiaChi.ward)
     );
-    data.shippingAddress = {
-      ...data.shippingAddress,
+    data.DiaChi = {
+      ...data.DiaChi,
       provinceOrCity: city,
       district: district,
       ward: ward,
@@ -426,7 +424,7 @@ function ListCustomer(props) {
             message.success("Success", 0.5);
           })
           .catch((err) => {
-            message.error(err.response.data.message,1);
+            message.error("Có lỗi xảy ra",1);
           });
       } else {
         const action = await saveCustomer({ ...data, _id: formValue._id })
@@ -434,7 +432,7 @@ function ListCustomer(props) {
             message.success("Success", 0.5);
           })
           .catch((err) => {
-            message.error(err.response.data.message,1);
+            message.error("Có lỗi xảy ra",1);
           });
       }
       setSubmit(false);
@@ -455,9 +453,9 @@ function ListCustomer(props) {
     setCities(res.data);
   };
   const onChangeCity = async (value) => {
-    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    const DiaChi = form?.current?.getFieldValue("DiaChi");
     form?.current?.setFieldsValue({
-      shippingAddress: { ...shippingAddress, district: null, ward: null },
+      DiaChi: { ...DiaChi, district: null, ward: null },
     });
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
@@ -465,9 +463,9 @@ function ListCustomer(props) {
     setDistricts(res.data);
   };
   const onChangeDistrict = async (value) => {
-    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    const DiaChi = form?.current?.getFieldValue("DiaChi");
     form?.current?.setFieldsValue({
-      shippingAddress: { ...shippingAddress, ward: null },
+      DiaChi: { ...DiaChi, ward: null },
     });
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
@@ -479,25 +477,28 @@ function ListCustomer(props) {
       form.current?.setFieldsValue({
         _id: formValue._id,
         TenKhachHang: formValue.TenKhachHang,
-        DiaChi: formValue.DiaChi,
         email: formValue.email,
         SDT: formValue.SDT,
         password: "",
         NgaySinh: formValue.NgaySinh && moment(formValue.NgaySinh),
         TrangThai: formValue.TrangThai,
-        shippingAddress: {
-          provinceOrCity: formValue?.shippingAddress?.provinceOrCity?.id,
-          district: formValue?.shippingAddress?.district?.id,
-          ward: formValue?.shippingAddress?.ward?.id,
+        DiaChi: {
+          provinceOrCity: formValue?.DiaChi?.provinceOrCity?.id,
+          district: formValue?.DiaChi?.district?.id,
+          ward: formValue?.DiaChi?.ward?.id,
+          DiaChiDetail: formValue.DiaChi?.DiaChiDetail,
+
         },
       });
     } else {
       form.current?.setFieldsValue({
         _id: formValue?._id,
-        shippingAddress: {
+        TrangThai: true,
+        DiaChi: {
           provinceOrCity: null,
           district: null,
           ward: null,
+          DiaChiDetail: ""
         },
       });
     }
@@ -550,7 +551,7 @@ function ListCustomer(props) {
                 rules={[
                   {
                     required: true,
-                    message: t("customer.pleaseEnterCustomerName"),
+                    message: t && t("customer.pleaseEnterCustomerName"),
                   },
                 ]}
               >
@@ -558,11 +559,11 @@ function ListCustomer(props) {
               </Form.Item>
               <Form.Item
                 label={t && t("customer.address")}
-                name="DiaChi"
+                name={["DiaChi", "DiaChiDetail"]}
                 rules={[
                   {
                     required: true,
-                    message: t("customer.pleaseEnterCustomerAddress"),
+                    message: t && t("customer.pleaseEnterCustomerAddress"),
                   },
                 ]}
               >
@@ -574,12 +575,12 @@ function ListCustomer(props) {
               >
                 <Col span={8}>
                   <Form.Item
-                    name={["shippingAddress", "provinceOrCity"]}
+                    name={["DiaChi", "provinceOrCity"]}
                     label={t && t("shippingAddress.city")}
                     rules={[
                       {
                         required: true,
-                        message: t("shippingAddress.pleaseSelectCity"),
+                        message: t && t("shippingAddress.pleaseSelectCity"),
                       },
                     ]}
                   >
@@ -591,7 +592,7 @@ function ListCustomer(props) {
                     >
                       {cities.map((city, index) => (
                         <Option key={index} value={city?.id}>
-                          {city?.id + " | " + city?.name}
+                          {city?.name}
                         </Option>
                       ))}
                     </Select>
@@ -599,13 +600,13 @@ function ListCustomer(props) {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    name={["shippingAddress", "district"]}
+                    name={["DiaChi", "district"]}
                     label={t && t("shippingAddress.district")}
 
                     rules={[
                       {
                         required: true,
-                        message: t("shippingAddress.pleaseSelectDistrict"),
+                        message: t && t("shippingAddress.pleaseSelectDistrict"),
                       },
                     ]}
                   >
@@ -617,7 +618,7 @@ function ListCustomer(props) {
                     >
                       {districts.map((district, index) => (
                         <Option key={index} value={district?.id}>
-                          {district?.id + " | " + district?.name}
+                          {district?.name}
                         </Option>
                       ))}
                     </Select>
@@ -625,13 +626,13 @@ function ListCustomer(props) {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    name={["shippingAddress", "ward"]}
+                    name={["DiaChi", "ward"]}
                     label={t && t("shippingAddress.ward")}
 
                     rules={[
                       {
                         required: true,
-                        message: t("shippingAddress.pleaseSelectWard"),
+                        message: t && t("shippingAddress.pleaseSelectWard"),
                       },
                     ]}
                   >
@@ -642,7 +643,7 @@ function ListCustomer(props) {
                     >
                       {wards.map((ward, index) => (
                         <Option key={index} value={ward?.id}>
-                          {ward?.id + " | " + ward?.name}
+                          {ward?.name}
                         </Option>
                       ))}
                     </Select>
@@ -655,11 +656,11 @@ function ListCustomer(props) {
                 rules={[
                   {
                     type: "email",
-                    message: t("customer.theInPutIsNotValidEmail"),
+                    message: "Email not valid",
                   },
                   {
                     required: true,
-                    message: t("customer.pleaseEnterCustomerEmail"),
+                    message: t && t("customer.pleaseEnterCustomerEmail"),
                   },
                 ]}
               >
@@ -671,7 +672,7 @@ function ListCustomer(props) {
                 rules={[
                   {
                     required: add,
-                    message: t("customer.pleaseEnterCustomerPassword"),
+                    message: t && t("customer.pleaseEnterCustomerPassword"),
                   },
                   { min: 6, message: 'Password must be minimum 6 characters.' },
                 ]}
@@ -681,12 +682,12 @@ function ListCustomer(props) {
               <Form.Item
                 label={t && t("customer.DOB")}
                 name="NgaySinh"
-                rules={[
-                  {
-                    required: true,
-                    message: t("customer.pleaseChooseDOB"),
-                  },
-                ]}
+                // rules={[
+                //   {
+                //     required: true,
+                //     message: t && t("customer.pleaseChooseDOB"),
+                //   },
+                // ]}
               >
                 <DatePicker />
               </Form.Item>
@@ -711,7 +712,7 @@ function ListCustomer(props) {
                   },
                   {
                     required: true,
-                    message: t("customer.pleaseEnterCustomerPhoneNumber"),
+                    message: t && t("customer.pleaseEnterCustomerPhoneNumber"),
                   },
                 ]}
               >

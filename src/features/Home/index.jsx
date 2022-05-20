@@ -128,11 +128,10 @@ function Home(props) {
   };
 
   const customAnalyst = (date1, date2) => {
-    if(!date1){
-      setData([])
-      return 
-    }
-    else{
+    if (!date1) {
+      setData([]);
+      return;
+    } else {
       let dataFake = [];
       let a = orders?.filter(
         (p) =>
@@ -152,8 +151,8 @@ function Home(props) {
           type: moment(moment(date1[1]).subtract(i.toString(), "days")).format(
             "DD/MM"
           ),
-          Order: a?.filter((p) => p.TrangThai == 0).length
-            ? a?.filter((p) => p.TrangThai == 0).length
+          Order: a?.filter((p) => p.TrangThai != 3).length
+            ? a?.filter((p) => p.TrangThai != 3).length
             : null,
           diff: "Incompleted order",
         });
@@ -161,8 +160,8 @@ function Home(props) {
           type: moment(moment(date1[1]).subtract(i.toString(), "days")).format(
             "DD/MM"
           ),
-          Order: a?.filter((p) => p.TrangThai == 1).length
-            ? a?.filter((p) => p.TrangThai == 1).length
+          Order: a?.filter((p) => p.TrangThai == 3).length
+            ? a?.filter((p) => p.TrangThai == 3).length
             : null,
           diff: "Completed order",
         });
@@ -171,11 +170,10 @@ function Home(props) {
     }
   };
   const customAnalystTotal = (date1, date2) => {
-    if(!date1){
-      setData([])
-      return 
-    }
-    else{
+    if (!date1) {
+      setData([]);
+      return;
+    } else {
       let dataFake = [];
       let a = orders?.filter(
         (p) =>
@@ -195,9 +193,9 @@ function Home(props) {
           type: moment(moment(date1[1]).subtract(i.toString(), "days")).format(
             "DD/MM"
           ),
-          Total: a?.filter((p) => p.TrangThai == 0).length
+          Total: a?.filter((p) => p.TrangThai != 3).length
             ? a
-                ?.filter((p) => p.TrangThai == 0)
+                ?.filter((p) => p.TrangThai != 3)
                 .map((p) => p.TongTien)
                 .reduce((a, b) => a + b, 0)
             : null,
@@ -207,16 +205,16 @@ function Home(props) {
           type: moment(moment(date1[1]).subtract(i.toString(), "days")).format(
             "DD/MM"
           ),
-          Total: a?.filter((p) => p.TrangThai == 1).length
+          Total: a?.filter((p) => p.TrangThai == 3).length
             ? a
-                ?.filter((p) => p.TrangThai == 1)
+                ?.filter((p) => p.TrangThai == 3)
                 .map((p) => p.TongTien)
                 .reduce((a, b) => a + b, 0)
             : null,
           diff: "Completed order",
         });
       }
-      console.log(dataFake)
+      console.log(dataFake);
       setDataTotal(dataFake);
     }
   };
@@ -234,7 +232,13 @@ function Home(props) {
       const data = await getFilterOrder();
       setOrders(orders);
       const totalAmount = data.data
-        ?.filter((p) => p.TrangThai == 1)
+        ?.filter(
+          (p) =>
+            p.TrangThai == 3 &&
+            moment(p.createdAt).format("DD/MM/YYYY") ==
+              moment(moment()).format("DD/MM/YYYY")
+        )
+
         .map((p) => p.TongTien)
         .reduce((a, b) => a + b, 0);
       if (totalAmount) setTotal(totalAmount);
@@ -252,8 +256,8 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Order: a?.filter((p) => p.TrangThai == 0).length
-              ? a?.filter((p) => p.TrangThai == 0).length
+            Order: a?.filter((p) => p.TrangThai != 3).length
+              ? a?.filter((p) => p.TrangThai != 3).length
               : null,
             diff: "Incompleted order",
           });
@@ -261,8 +265,8 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Order: a?.filter((p) => p.TrangThai == 1).length
-              ? a?.filter((p) => p.TrangThai == 1).length
+            Order: a?.filter((p) => p.TrangThai == 3).length
+              ? a?.filter((p) => p.TrangThai == 3).length
               : null,
             diff: "Completed order",
           });
@@ -280,8 +284,8 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Order: a.filter((p) => p.TrangThai == 0).length
-              ? a.filter((p) => p.TrangThai == 0).length
+            Order: a.filter((p) => p.TrangThai != 3).length
+              ? a.filter((p) => p.TrangThai != 3).length
               : null,
             diff: "Incompleted order",
           });
@@ -289,8 +293,8 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Order: a.filter((p) => p.TrangThai == 1).length
-              ? a.filter((p) => p.TrangThai == 1).length
+            Order: a.filter((p) => p.TrangThai == 3).length
+              ? a.filter((p) => p.TrangThai == 3).length
               : null,
             diff: "Completed order",
           });
@@ -310,8 +314,8 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "months")).format(
               "MM/YYYY"
             ),
-            Order: a.filter((p) => p.TrangThai == 0).length
-              ? a.filter((p) => p.TrangThai == 0).length
+            Order: a.filter((p) => p.TrangThai != 3).length
+              ? a.filter((p) => p.TrangThai != 3).length
               : null,
             diff: "Incompleted order",
           });
@@ -319,8 +323,8 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "months")).format(
               "MM/YYYY"
             ),
-            Order: a.filter((p) => p.TrangThai == 1).length
-              ? a.filter((p) => p.TrangThai == 1).length
+            Order: a.filter((p) => p.TrangThai == 3).length
+              ? a.filter((p) => p.TrangThai == 3).length
               : null,
             diff: "Completed order",
           });
@@ -335,7 +339,7 @@ function Home(props) {
       const data = await getFilterOrder();
       setOrders(data.data);
       const totalAmount = data.data
-        ?.filter((p) => p.TrangThai == 1)
+        ?.filter((p) => p.TrangThai == 3)
         .map((p) => p.TongTien)
         .reduce((a, b) => a + b, 0);
       if (totalAmount) setTotal(totalAmount);
@@ -353,9 +357,9 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Total: a?.filter((p) => p.TrangThai == 0).length
+            Total: a?.filter((p) => p.TrangThai != 3).length
               ? a
-                  ?.filter((p) => p.TrangThai == 0)
+                  ?.filter((p) => p.TrangThai != 3)
                   .map((p) => {
                     return p.TongTien;
                   })
@@ -367,9 +371,9 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Total: a?.filter((p) => p.TrangThai == 1).length
+            Total: a?.filter((p) => p.TrangThai == 3).length
               ? a
-                  ?.filter((p) => p.TrangThai == 1)
+                  ?.filter((p) => p.TrangThai == 3)
                   .map((p) => p.TongTien)
                   .reduce((a, b) => a + b, 0)
               : null,
@@ -389,9 +393,9 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Total: a.filter((p) => p.TrangThai == 0).length
+            Total: a.filter((p) => p.TrangThai != 3).length
               ? a
-                  .filter((p) => p.TrangThai == 0)
+                  .filter((p) => p.TrangThai != 3)
                   .map((p) => p.TongTien)
                   .reduce((a, b) => a + b, 0)
               : null,
@@ -401,9 +405,9 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "days")).format(
               "DD/MM"
             ),
-            Total: a.filter((p) => p.TrangThai == 1).length
+            Total: a.filter((p) => p.TrangThai == 3).length
               ? a
-                  .filter((p) => p.TrangThai == 1)
+                  .filter((p) => p.TrangThai == 3)
                   .map((p) => p.TongTien)
                   .reduce((a, b) => a + b, 0)
               : null,
@@ -424,9 +428,9 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "months")).format(
               "MM/YYYY"
             ),
-            Total: a.filter((p) => p.TrangThai == 0).length
+            Total: a.filter((p) => p.TrangThai != 3).length
               ? a
-                  .filter((p) => p.TrangThai == 0)
+                  .filter((p) => p.TrangThai != 3)
                   .map((p) => p.TongTien)
                   .reduce((a, b) => a + b, 0)
               : null,
@@ -436,9 +440,9 @@ function Home(props) {
             type: moment(moment().subtract(i.toString(), "months")).format(
               "MM/YYYY"
             ),
-            Total: a.filter((p) => p.TrangThai == 1).length
+            Total: a.filter((p) => p.TrangThai == 3).length
               ? a
-                  .filter((p) => p.TrangThai == 1)
+                  .filter((p) => p.TrangThai == 3)
                   .map((p) => p.TongTien)
                   .reduce((a, b) => a + b, 0)
               : null,
@@ -476,7 +480,7 @@ function Home(props) {
                     moment(p.createdAt).format("DD/MM/YYYY") ==
                     moment(moment()).format("DD/MM/YYYY")
                 )
-                .filter((p) => p.TrangThai == 0).length
+                .filter((p) => p.TrangThai != 3).length
             }
           />
         </Col>

@@ -51,7 +51,12 @@
         "category": "Danh mục sản phẩm",
         "desc": "Mô tả",
         "productForm": "Biểu mẫu thông tin sản phẩm",
-
+        "weight": "Khối Lượng",
+        "discount": "Giảm giá",
+        "outOfDate": "Ngày hết hạn",
+        "Pleaseenteryouroutofdateofproduct": "Vui lòng nhập ngày hết hạn của sản phẩm",
+        "Pleaseenteryourdiscountofproduct": "Vui lòng nhập phần trăm giảm giá sản phẩm",
+        "Pleaseenteryourweightofproduct": "Vui lòng nhập khối lượng sản phẩm",
         "Pleaseenteryournameproduct": "Vui lòng nhập tên sản phẩm",
         "Pleaseenteryourpriceproduct": "Vui lòng nhập đơn giá",
         "Pleaseenteryourquantityofproduct": "Vui lòng nhập số lượng",
@@ -157,7 +162,7 @@
         "status": "Trạng thái",
         "Action": "Thao tác",
         "password": "Mật khẩu",
-
+        "theInputIsNotValidEmail": "Dữ liệu nhập vào không đúng định dạng Email!",
         "pleaseEnterCustomerName": "Vui lòng điền tên khách hàng",
         "pleaseEnterCustomerAddress": "Vui lòng điền địa chỉ khách hàng",
         "pleaseEnterCustomerEmail": "Vui lòng điền Email khách hàng",
@@ -216,7 +221,7 @@
         "enterYourDataBeforeSubmit": "Nhập thông tin của bạn trước khi Submit"
     },
     "layoutAdmin": {
-        "Total": "Doanh thu",
+        "Total": "Doanh thu hôm nay",
         "Customers": "Khách hàng ",
         "TodayOrders": "Đơn hàng hôm nay",
         "AnalystOrder": "Thống kê đơn hàng",

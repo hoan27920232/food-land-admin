@@ -138,8 +138,8 @@ function ListUser(props) {
     },
     {
       title: t && t("user.roles"),
-      dataIndex: "roles",
-      key: "roles",
+      dataIndex: "role",
+      key: "role",
       render: (record) => (
         <>
           {record == 0 && <Tag color="orange">{t && t("Administrator")}</Tag>}
@@ -220,7 +220,7 @@ function ListUser(props) {
         TenNhanVien: valueForm.TenNhanVien,
         TrangThai: valueForm.TrangThai,
         SDT: valueForm.SDT,
-        roles: valueForm.roles,
+        role: valueForm.role,
         DiaChi: valueForm.DiaChi,
         Avatar: valueForm?.Avatar,
       });
@@ -233,7 +233,7 @@ function ListUser(props) {
         TenNhanVien: "",
         TrangThai: true,
         SDT: "",
-        roles: null,
+        role: null,
         DiaChi: "",
         Avatar: null,
       });
@@ -244,7 +244,7 @@ function ListUser(props) {
         TenNhanVien: "",
         TrangThai: true,
         SDT: "",
-        roles: null,
+        role: null,
         DiaChi: "",
         Avatar: null,
       });
@@ -318,7 +318,7 @@ function ListUser(props) {
       TenNhanVien: "",
       TrangThai: true,
       SDT: "",
-      roles: null,
+      role: null,
       DiaChi: "",
       Avatar: null,
     });
@@ -406,7 +406,7 @@ function ListUser(props) {
         TenNhanVien: valueForm?.TenNhanVien,
         TrangThai: valueForm?.TrangThai,
         SDT: valueForm?.SDT,
-        roles: valueForm?.roles,
+        role: valueForm?.role,
         DiaChi: valueForm?.DiaChi,
         Avatar: valueForm?.Avatar?._id,
       });
@@ -414,6 +414,7 @@ function ListUser(props) {
       form.current?.setFieldsValue({
         _id: valueForm._id,
         Avatar: valueForm.Avatar?._id,
+        TrangThai: true
       });
     }
   }, [valueForm]);
@@ -506,7 +507,7 @@ function ListUser(props) {
 
               <Form.Item
                 label={t && t("user.roles")}
-                name="roles"
+                name="role"
                 rules={[
                   {
                     required: true,

@@ -13,6 +13,7 @@ import {
   Row,
   Col,
   message,
+  DatePicker,
 } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -31,6 +32,8 @@ import axiosClient from "api/axiosClient";
 // THU VIEN DE LAY DA NGON NGU
 import { useTranslation } from "react-i18next";
 import { removeProduct, saveProduct } from "api/productApi";
+import moment from "moment";
+import { formatCurrency } from "app/format";
 
 ListProduct.propTypes = {};
 
@@ -62,7 +65,7 @@ function ListProduct(props) {
     DonGia: null,
     MoTa: "",
     SoLuong: null,
-    SoLuongDaBan: null,
+    SoLuongDaBan: 0,
     KhoiLuong: null,
     DanhMucSP: null,
     AnhMoTa: [],
@@ -163,17 +166,36 @@ function ListProduct(props) {
       title: t && t("product.price"),
       dataIndex: "DonGia",
       key: "DonGia",
+      render: (record) => <p>{formatCurrency(record)}</p>,
       sorter: (a, b) => a.DonGia - b.DonGia,
     },
     {
       title: t && t("product.quantity"),
       dataIndex: "SoLuong",
       key: "SoLuong",
+      sorter: (a, b) => a.SoLuong - b.SoLuong,
     },
     {
       title: t && t("product.quantitySold"),
       dataIndex: "SoLuongDaBan",
       key: "SoLuongDaBan",
+      sorter: (a, b) => a.SoLuongDaBan - b.SoLuongDaBan,
+
+    },
+    {
+      title: t && t("product.outOfDate"),
+      dataIndex: "NgayHetHan",
+      key: "NgayHetHan",
+      render: (record) => <div>{moment(record).format("DD/MM/YYYY")}</div>,
+      sorter: (a, b) => Date.parse(a.NgayHetHan) - Date.parse(b.NgayHetHan),
+
+    },
+   
+    {
+      title: t && t("product.discount"),
+      dataIndex: "GiamGia",
+      key: "GiamGia",
+      render: (record) => <p>{record} %</p>
     },
     {
       title: t && t("product.category"),
@@ -182,9 +204,10 @@ function ListProduct(props) {
       render: (record) => <span>{record?.TenDanhMucSP}</span>,
     },
     {
-      title: "Khối lượng",
+      title: t && t("product.weight"),
       dataIndex: "KhoiLuong",
       key: "KhoiLuong",
+      render: (record) => <span>{record} kg</span>,
     },
     {
       title: t && t("button.action"),
@@ -229,6 +252,8 @@ function ListProduct(props) {
         MoTa: BraftEditor.createEditorState(formValue.MoTa),
         SoLuong: formValue.SoLuong,
         KhoiLuong: formValue.KhoiLuong,
+        GiamGia: formValue.GiamGia,
+        NgayHetHan: formValue.NgayHetHan,
         SoLuongDaBan: formValue.SoLuongDaBan,
         DanhMucSP: formValue.DanhMucSP._id,
         AnhMoTa: formValue.AnhMoTa,
@@ -242,7 +267,9 @@ function ListProduct(props) {
         MoTa: "",
         SoLuong: null,
         KhoiLuong: null,
-        SoLuongDaBan: null,
+        GiamGia: 0,
+        NgayHetHan: null,
+        SoLuongDaBan: 0,
         DanhMucSP: null,
         AnhMoTa: [],
       });
@@ -252,7 +279,9 @@ function ListProduct(props) {
         DonGia: 0,
         MoTa: BraftEditor.createEditorState(""),
         SoLuong: 0,
+        NgayHetHan: null,
         KhoiLuong: 0,
+        GiamGia: 0,
         SoLuongDaBan: 0,
         DanhMucSP: null,
         AnhMoTa: [],
@@ -282,7 +311,9 @@ function ListProduct(props) {
       DonGia: null,
       MoTa: BraftEditor.createEditorState(""),
       SoLuong: null,
-      SoLuongDaBan: null,
+      SoLuongDaBan: 0,
+      GiamGia: 0,
+      NgayHetHan: null,
       KhoiLuong: null,
       DanhMucSP: null,
       AnhMoTa: [],
@@ -427,6 +458,8 @@ function ListProduct(props) {
         DonGia: valueForm.DonGia,
         MoTa: valueForm.MoTa,
         SoLuong: valueForm.SoLuong,
+        GiamGia: valueForm.GiamGia,
+        NgayHetHan: valueForm.NgayHetHan && moment(valueForm.NgayHetHan),
         SoLuongDaBan: valueForm.SoLuongDaBan,
         KhoiLuong: valueForm.KhoiLuong,
         DanhMucSP: valueForm.DanhMucSP,
@@ -437,6 +470,8 @@ function ListProduct(props) {
         _id: valueForm._id,
         MoTa: valueForm.MoTa,
         AnhMoTa: valueForm.AnhMoTa,
+        GiamGia: 0,
+        SoLuongDaBan: 0,
       });
     }
   }, [valueForm]);
@@ -535,12 +570,12 @@ function ListProduct(props) {
                 <InputNumber />
               </Form.Item>
               <Form.Item
-                label="Khối lượng"
-                name="KhoiLuong"
+                label={t && t("product.discount")}
+                name="GiamGia"
                 rules={[
                   {
                     required: true,
-                    message: t("product.Pleaseenteryourquantitysoldofproduct"),
+                    message: t("product.Pleaseenteryourdiscountofproduct"),
                     type: "number",
                     min: 0,
                   },
@@ -548,6 +583,33 @@ function ListProduct(props) {
               >
                 <InputNumber />
               </Form.Item>
+              <Form.Item
+                label={t && t("product.weight") + " (kg)"}
+                name="KhoiLuong"
+                rules={[
+                  {
+                    required: true,
+                    message: t("product.Pleaseenteryourweightofproduct"),
+                    type: "number",
+                    min: 0,
+                  },
+                ]}
+              >
+                <InputNumber />
+              </Form.Item>
+              <Form.Item
+                label={t && t("product.outOfDate")}
+                name="NgayHetHan"
+                rules={[
+                  {
+                    required: true,
+                    message: t && t("product.Pleaseenteryouroutofdateofproduct"),
+                  },
+                ]}
+              >
+                <DatePicker />
+              </Form.Item>
+              <Form.Item />
               <Form.Item
                 name="DanhMucSP"
                 label={t && t("product.category")}
@@ -587,7 +649,7 @@ function ListProduct(props) {
                       ? window.innerWidth > 900
                         ? "column"
                         : "row"
-                      : "row",
+                      : "",
                 }}
               >
                 <ImageDisplay

@@ -52,6 +52,12 @@
         "category": "Category",
         "desc": "Description",
         "productForm": "Product Form",
+        "weight": "Weight",
+        "discount": "Discount",
+        "outOfDate": "Out of date",
+        "Pleaseenteryourdiscountofproduct": "Please enter your discount product",
+        "Pleaseenteryourweightofproduct": "Please enter your weight product",
+        "Pleaseenteryouroutofdateofproduct": "Please chose your out of date of your product",
 
         "Pleaseenteryournameproduct": "Please enter your name product",
         "Pleaseenteryourpriceproduct": "Please enter your price product",
@@ -156,6 +162,7 @@
         "status": "Status",
         "Action": "Action",
         "password": "Password",
+        "theInputIsNotValidEmail": "The input is not valid E-mail!",
 
         "pleaseEnterCustomerName": "Please enter customer name",
         "pleaseEnterCustomerAddress": "Please enter customer address",
@@ -215,7 +222,7 @@
         "enterYourDataBeforeSubmit": "Enter your data before submit"
     },
     "layoutAdmin": {
-        "Total": "Total",
+        "Total": "Total money today",
         "Customers": "Customer ",
         "TodayOrders": "Today Orders",
         "AnalystOrder": "Analyst Order",

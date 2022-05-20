@@ -36,7 +36,7 @@ import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
-import { removeOrder, saveOrder, postOrderGHTK, deleteGHTK } from "api/orderApi";
+import { removeOrder, saveOrder, postOrderGHTK, deleteGHTK, getExportOrder } from "api/orderApi";
 import ReactExport from "react-export-excel";
 import { useReactToPrint } from "react-to-print";
 import ReactToPrint from "react-to-print";
@@ -53,7 +53,7 @@ function ListOrder(props) {
   const data = useSelector((state) => state.orders.orders);
   const total = useSelector((state) => state.orders.totalCount);
   const loading = useSelector((state) => state.orders.loading);
-  const customers = useSelector((state) => state.customers.customers);
+  const customers = useSelector((state) => state.customers.customers.filter(p => p.TrangThai));
   const discounts = useSelector((state) => state.discounts.discounts.filter(p => p.active && Date.parse(p.endDate) > Date.now() && Date.parse(p.startDate) < Date.now()));
   const users = useSelector((state) => state.users.users);
   const products = useSelector((state) => state.products.products);
@@ -69,11 +69,11 @@ function ListOrder(props) {
   const { Panel } = Collapse;
   const [submit, setSubmit] = useState(false);
   const [rowSelect, setRowSelect] = useState([]);
+  const [dataExcel, setDataExcel] = useState([])
   const [valueForm, setValueForm] = useState({
     _id: 0,
     MaKhachHang: 0,
     Discount: null,
-    DiaChi: "",
     email: "",
     SDT: "",
     shipMoney: 0,
@@ -84,7 +84,7 @@ function ListOrder(props) {
       },
     ],
     MaTaiKhoan: null,
-    shippingAddress: {
+    DiaChi: {
       provinceOrCity: {
         id: null,
         name: "",
@@ -103,6 +103,8 @@ function ListOrder(props) {
         pid: null,
         code: null,
       },
+      DiaChiDetail: "",
+
     },
     TrangThai: 0,
     TinhTrangThanhToan: 0,
@@ -356,6 +358,7 @@ function ListOrder(props) {
       title: t && t("order.address"),
       dataIndex: "DiaChi",
       key: "DiaChi",
+      render: (record) => <p>{record.DiaChiDetail}</p>
     },
     {
       title: t && t("order.created"),
@@ -442,8 +445,8 @@ function ListOrder(props) {
     },
     {
       title: "Shipping address",
-      dataIndex: "shippingAddress",
-      key: "shippingAddress",
+      dataIndex: "DiaChi",
+      key: "DiaChi",
       className: "hidden",
     },
     
@@ -460,7 +463,6 @@ function ListOrder(props) {
         SDT: formValue?.MaKhachHang?.SDT,
         Discount: formValue?.Discount?._id,
         shipMoney: formValue?.shipMoney,
-        shippingAddress: formValue?.shippingAddress,
         items: formValue?.items.map((p) => ({
           sanpham: p?.sanpham?._id,
           soluong: p?.soluong,
@@ -479,7 +481,6 @@ function ListOrder(props) {
         _id: 0,
         MaKhachHang: 0,
         Discount: 0,
-        DiaChi: "",
         email: "",
         SDT: "",
         shipMoney: 0,
@@ -490,10 +491,12 @@ function ListOrder(props) {
           },
         ],
         MaTaiKhoan: null,
-        shippingAddress: {
+        DiaChi: {
           provinceOrCity: null,
           district: null,
           ward: null,
+          DiaChiDetail: "",
+
         },
         TrangThai: 0,
         TinhTrangThanhToan: 0,
@@ -503,11 +506,10 @@ function ListOrder(props) {
         _id: 0,
         MaKhachHang: 0,
         Discount: 0,
-        DiaChi: "",
         shipMoney: 0,
         email: "",
         SDT: "",
-        shippingAddress: {
+        DiaChi: {
           provinceOrCity: {
             id: null,
             name: "",
@@ -526,6 +528,7 @@ function ListOrder(props) {
             pid: null,
             code: null,
           },
+          DiaChiDetail: "",
         },
         items: [
           {
@@ -548,13 +551,14 @@ function ListOrder(props) {
       );
       setCities(cities.data);
       const districts = await axios.get(
-        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.shippingAddress.district.pid}`
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.DiaChi.district.pid}`
       );
       setDistricts(districts.data);
       const wards = await axios.get(
-        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.shippingAddress.ward.pid}`
+        `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${formValue.DiaChi.ward.pid}`
       );
       setWards(wards.data);
+
     }
   };
 
@@ -567,11 +571,10 @@ function ListOrder(props) {
       _id: 0,
       MaKhachHang: 0,
       Discount: 0,
-      DiaChi: "",
       email: "",
       SDT: "",
       shipMoney: 0,
-      shippingAddress: {
+      DiaChi: {
         provinceOrCity: {
           id: null,
           name: "",
@@ -590,6 +593,8 @@ function ListOrder(props) {
           pid: null,
           code: null,
         },
+        DiaChiDetail: "",
+
       },
       items: [
         {
@@ -688,16 +693,16 @@ function ListOrder(props) {
   const finishForm = async (data) => {
     setSubmit(true);
     const city = formatAddress(
-      cities.find((p) => p.id == data.shippingAddress.provinceOrCity)
+      cities.find((p) => p.id == data.DiaChi.provinceOrCity)
     );
     const district = formatAddress(
-      districts.find((p) => p.id == data.shippingAddress.district)
+      districts.find((p) => p.id == data.DiaChi.district)
     );
     const ward = formatAddress(
-      wards.find((p) => p.id == data.shippingAddress.ward)
+      wards.find((p) => p.id == data.DiaChi.ward)
     );
-    data.shippingAddress = {
-      ...data.shippingAddress,
+    data.DiaChi = {
+      ...data.DiaChi,
       provinceOrCity: city,
       district: district,
       ward: ward,
@@ -747,9 +752,6 @@ function ListOrder(props) {
           setSubmit(false);
         });
     }
-    // else if(data.TrangThai !== 3 && !isAdd) {
-
-    // }
     else {
       const action = await saveOrder({
         ...data,
@@ -769,11 +771,10 @@ function ListOrder(props) {
     setValueForm({
       _id: 0,
       MaKhachHang: 0,
-      DiaChi: "",
       email: "",
       SDT: "",
       shipMoney: 0,
-      shippingAddress: {
+      DiaChi: {
         provinceOrCity: {
           id: null,
           name: "",
@@ -792,6 +793,8 @@ function ListOrder(props) {
           pid: null,
           code: null,
         },
+        DiaChiDetail: "",
+
       },
       items: [
         {
@@ -871,9 +874,9 @@ function ListOrder(props) {
     setCities(res.data);
   };
   const onChangeCity = async (value) => {
-    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    const DiaChi = form?.current?.getFieldValue("DiaChi");
     form?.current?.setFieldsValue({
-      shippingAddress: { ...shippingAddress, district: null, ward: null },
+      DiaChi: { ...DiaChi, district: null, ward: null },
     });
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
@@ -881,9 +884,9 @@ function ListOrder(props) {
     setDistricts(res.data);
   };
   const onChangeDistrict = async (value) => {
-    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    const DiaChi = form?.current?.getFieldValue("DiaChi");
     form?.current?.setFieldsValue({
-      shippingAddress: { ...shippingAddress, ward: null },
+      DiaChi: { ...DiaChi, ward: null },
     });
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${value}`
@@ -895,12 +898,10 @@ function ListOrder(props) {
   };
   useEffect(() => {
     if (!isAdd) {
-      console.log(valueForm, "Hello");
       form.current?.setFieldsValue({
         _id: valueForm?._id,
         MaKhachHang: valueForm?.MaKhachHang,
         Discount: valueForm?.Discount,
-        DiaChi: valueForm?.DiaChi,
         email: valueForm?.email,
         SDT: valueForm?.SDT,
         shipMoney: valueForm?.shipMoney,
@@ -909,25 +910,26 @@ function ListOrder(props) {
         TinhTrangThanhToan: valueForm?.TinhTrangThanhToan,
         KieuThanhToan: valueForm?.KieuThanhToan,
         items: valueForm?.items,
-        shippingAddress: {
-          provinceOrCity: valueForm?.shippingAddress?.provinceOrCity?.id,
-          district: valueForm?.shippingAddress?.district?.id,
-          ward: valueForm?.shippingAddress?.ward?.id,
+        DiaChi: {
+          provinceOrCity: valueForm?.DiaChi?.provinceOrCity?.id,
+          district: valueForm?.DiaChi?.district?.id,
+          ward: valueForm?.DiaChi?.ward?.id,
+          DiaChiDetail: valueForm?.DiaChi?.DiaChiDetail
         },
         note: valueForm?.note,
 
       });
       // form.current?.setFieldsValue(
-      //   `shippingAddress.provinceOrCity`,
-      //   valueForm?.shippingAddress?.provinceOrCity?.id
+      //   `DiaChi.provinceOrCity`,
+      //   valueForm?.DiaChi?.provinceOrCity?.id
       // );
       // form.current?.setFieldsValue(
       //   ``,
-      //   valueForm?.shippingAddress?.district?.id
+      //   valueForm?.DiaChi?.district?.id
       // );
       // form.current?.setFieldsValue(
-      //   `shippingAddress.ward`,
-      //   valueForm?.shippingAddress?.ward?.id
+      //   `DiaChi.ward`,
+      //   valueForm?.DiaChi?.ward?.id
       // );
     } else {
       form.current?.setFieldsValue({
@@ -948,23 +950,24 @@ function ListOrder(props) {
         TinhTrangThanhToan: 0,
         shipMoney: 0,
         KieuThanhToan: "cod",
-        shippingAddress: {
+        DiaChi: {
           provinceOrCity: null,
           district: null,
           ward: null,
+          DiaChiDetail: ""
         },
         note: ''
       });
       // form.current?.setFieldsValue(
-      //   `shippingAddress.provinceOrCity`,
+      //   `DiaChi.provinceOrCity`,
       //   null
       // );
       // form.current?.setFieldsValue(
-      //   `shippingAddress.district`,
+      //   `DiaChi.district`,
       //   null
       // );
       // form.current?.setFieldsValue(
-      //   `shippingAddress.ward`,
+      //   `DiaChi.ward`,
       //   null
       // );
     }
@@ -982,20 +985,26 @@ function ListOrder(props) {
     const actionDis = getAllDis();
     dispatch(actionDis);
     getCities();
+    const fetchDataExcel = async () => {
+      const getExcelData = await getExportOrder();
+      setDataExcel(getExcelData.data);
+    }
+    fetchDataExcel()
   }, []);
   const onChange = async (value) => {
+    setLoadingProgress(true)
     const res = await axios.get(
       `${process.env.REACT_APP_API_URL}khachhangs/${value}`
     );
     if (res && res.data) {
       form?.current?.setFieldsValue({
-        DiaChi: res.data?.DiaChi,
         email: res.data?.email,
         SDT: res.data?.SDT,
-        shippingAddress: {
-          provinceOrCity:  res.data?.shippingAddress?.provinceOrCity?.id,
-          district: res.data?.shippingAddress?.district?.id,
-          ward: res.data?.shippingAddress?.ward?.id,
+        DiaChi: {
+          provinceOrCity:  res.data?.DiaChi?.provinceOrCity?.id,
+          district: res.data?.DiaChi?.district?.id,
+          ward: res.data?.DiaChi?.ward?.id,
+          DiaChiDetail: res.data?.DiaChi?.DiaChiDetail
         },
       });
     }
@@ -1004,30 +1013,33 @@ function ListOrder(props) {
     );
     setCities(cities.data);
     const districts = await axios.get(
-      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${res.data.shippingAddress.district.pid}`
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${res.data.DiaChi.district.pid}`
     );
     setDistricts(districts.data);
     const wards = await axios.get(
-      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${res.data.shippingAddress.ward.pid}`
+      `${process.env.REACT_APP_API_URL}ghtk/vnlocations/${res.data.DiaChi.ward.pid}`
     );
     setWards(wards.data);
+    setLoadingProgress(false)
+
   };
   const onChangeProduct = async (value) => {
     const action = getAll();
     dispatch(action);
   };
   const calculateShip = async () => {
-    const shippingAddress = form?.current?.getFieldValue("shippingAddress");
+    setLoadingProgress(true)
+    const DiaChi = form?.current?.getFieldValue("DiaChi");
     let items = form?.current?.getFieldValue("items");
     items = items.filter((p) => p.sanpham && p.soluong);
-    console.log(shippingAddress);
+    console.log(DiaChi);
     let fullItems = [];
     let weight = 0;
     const city = formatAddress(
-      cities.find((p) => p.id == shippingAddress.provinceOrCity)
+      cities.find((p) => p.id == DiaChi.provinceOrCity)
     );
     const district = formatAddress(
-      districts.find((p) => p.id == shippingAddress.district)
+      districts.find((p) => p.id == DiaChi.district)
     );
     if (items.length > 0) {
       fullItems = await axios.get(
@@ -1044,9 +1056,9 @@ function ListOrder(props) {
     }
     if (
       items.length &&
-      shippingAddress.provinceOrCity &&
-      shippingAddress.district &&
-      shippingAddress.ward
+      DiaChi.provinceOrCity &&
+      DiaChi.district &&
+      DiaChi.ward
     ) {
       const res = await axios.get(
         `${process.env.REACT_APP_API_URL}ghtk/calculateShip`,
@@ -1062,6 +1074,7 @@ function ListOrder(props) {
         shipMoney: res.data?.ship?.fee?.fee,
       });
     }
+    setLoadingProgress(false)
   };
   const sendGHTK = async () => {
     let flagStatus = "";
@@ -1074,10 +1087,10 @@ function ListOrder(props) {
         if (
           !orders[index]?.MaKhachHang?.TenKhachHang ||
           !orders[index]?.SDT ||
-          !orders[index]?.DiaChi ||
-          !orders[index]?.shippingAddress?.provinceOrCity?.name ||
-          !orders[index]?.shippingAddress?.district?.name ||
-          !orders[index]?.shippingAddress?.ward?.name
+          !orders[index]?.DiaChi?.DiaChiDetail ||
+          !orders[index]?.DiaChi?.provinceOrCity?.name ||
+          !orders[index]?.DiaChi?.district?.name ||
+          !orders[index]?.DiaChi?.ward?.name
         ) {
           console.log(orders[index], "order");
           flagStatus = "warn";
@@ -1112,10 +1125,10 @@ function ListOrder(props) {
             use_return_address: 0,
             name: orders[index]?.MaKhachHang?.TenKhachHang,
             tel: orders[index]?.SDT,
-            address: orders[index].DiaChi,
-            province: orders[index]?.shippingAddress?.provinceOrCity?.name,
-            district: orders[index]?.shippingAddress?.district?.name,
-            ward: orders[index]?.shippingAddress?.ward?.name,
+            address: orders[index].DiaChi?.DiaChiDetail,
+            province: orders[index]?.DiaChi?.provinceOrCity?.name,
+            district: orders[index]?.DiaChi?.district?.name,
+            ward: orders[index]?.DiaChi?.ward?.name,
             hamlet: "Khác",
             is_freeship: orders[index].TinhTrangThanhToan == 1 ? 1 : 0,
             value: orders[index].TongTien,
@@ -1165,13 +1178,14 @@ function ListOrder(props) {
             position: "fixed",
             top: "0px",
             left: "0px",
-            zIndex: 1000,
+            zIndex: 9999,
             background: "gray",
             opacity: 0.5,
+            color: "white"
           }}
         >
           <i class="fas fa-sync fa-spin"></i>
-          <p>Đang tính tiền ship</p>
+          <p>Đang xử lý thông tin</p>
         </div>
       )}
       <Button
@@ -1189,7 +1203,7 @@ function ListOrder(props) {
         {t("order.orderGHTK")}
       </Button>
  
-      {/* <ExcelFile
+      <ExcelFile
         element={
           <Button type="primary" style={{ margin: "10px 10px" }}>
             Export excel
@@ -1197,12 +1211,14 @@ function ListOrder(props) {
         }
       >
         <ExcelSheet
-          data={data.map((p) => ({
+          data={dataExcel.map((p) => ({
             _id: p._id,
             total: p.TongTien,
             items: p.items
               .map((c) => c.sanpham.TenSanPham + " * " + c.soluong)
               .reduce((a, b) => a + "," + b),
+            status: p.TrangThai,
+            paymentStatus: p.TinhTrangThanhToan
           }))}
           name="Orders"
         >
@@ -1213,8 +1229,11 @@ function ListOrder(props) {
             value="items"
             style={{ alignment: { wrapText: true } }}
           />
+                    <ExcelColumn label="Status" value="status" />
+                    <ExcelColumn label="Payment Status" value="paymentStatus" />
+
         </ExcelSheet>
-      </ExcelFile> */}
+      </ExcelFile>
       <Drawer
         visible={visible}
         placement="right"
@@ -1272,7 +1291,7 @@ function ListOrder(props) {
               </Form.Item>
               <Form.Item
                 label={t && t("order.address")}
-                name="DiaChi"
+                name={["DiaChi", "DiaChiDetail"]}
                 rules={[
                   {
                     required: true,
@@ -1288,7 +1307,7 @@ function ListOrder(props) {
               >
                 <Col span={8}>
                   <Form.Item
-                    name={["shippingAddress", "provinceOrCity"]}
+                    name={["DiaChi", "provinceOrCity"]}
                     label={t && t("shippingAddress.city")}
                     rules={[
                       {
@@ -1306,7 +1325,7 @@ function ListOrder(props) {
                     >
                       {cities.map((city, index) => (
                         <Option key={index} value={city?.id}>
-                          {city?.id + " | " + city?.name}
+                          {city?.name}
                         </Option>
                       ))}
                     </Select>
@@ -1314,7 +1333,7 @@ function ListOrder(props) {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    name={["shippingAddress", "district"]}
+                    name={["DiaChi", "district"]}
                     label={t && t("shippingAddress.district")}
                     rules={[
                       {
@@ -1332,7 +1351,7 @@ function ListOrder(props) {
                     >
                       {districts.map((district, index) => (
                         <Option key={index} value={district?.id}>
-                          {district?.id + " | " + district?.name}
+                          {district?.name}
                         </Option>
                       ))}
                     </Select>
@@ -1340,7 +1359,7 @@ function ListOrder(props) {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    name={["shippingAddress", "ward"]}
+                    name={["DiaChi", "ward"]}
                     label={t && t("shippingAddress.ward")}
                     rules={[
                       {
@@ -1358,7 +1377,7 @@ function ListOrder(props) {
                     >
                       {wards.map((ward, index) => (
                         <Option key={index} value={ward?.id}>
-                          {ward?.id + " | " + ward?.name}
+                          {ward?.name}
                         </Option>
                       ))}
                     </Select>

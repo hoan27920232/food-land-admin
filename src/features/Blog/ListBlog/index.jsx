@@ -273,7 +273,7 @@ function ListBlog(props) {
       TaiKhoan: null,
       TieuDe: "",
       TomTat: "",
-      NoiDung: "",
+      NoiDung: BraftEditor.createEditorState(""),
       DanhMucBlog: null,
       IDAnh: 0,
     });
